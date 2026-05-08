@@ -55,26 +55,6 @@
             </li>
         </ul>
     </div>
-    <div class="gallery-container">
-        <div class="gallery-viewer">
-            <img id="galleryImage" src="" alt="Gallery image" class="gallery-image">
-            <div class="gallery-error" id="galleryError" style="display:none;">No images found. Please ensure plot maps exist.</div>
-        </div>
-
-        <div class="gallery-controls">
-            <button id="prevBtn" class="gallery-btn">← Previous</button>
-            <div class="gallery-info">
-                <span id="imageCounter">0 / 0</span>
-                <div id="imageTitle" class="gallery-title" role="status" aria-live="polite"></div>
-            </div>
-            <button id="nextBtn" class="gallery-btn">Next →</button>
-        </div>
-
-        <div class="gallery-list">
-            <p><strong>Available Maps:</strong></p>
-            <ul id="imageList"></ul>
-        </div>
-    </div>
 
 </main>
 
@@ -100,86 +80,6 @@
     </div>
 
 </footer>
-
-<script>
-    // Image gallery viewer
-    let currentImageIndex = 0;
-    let images = [];
-
-    const galleryImage = document.getElementById('galleryImage');
-    const galleryError = document.getElementById('galleryError');
-    const imageCounter = document.getElementById('imageCounter');
-    const imageTitle = document.getElementById('imageTitle');
-    const imageList = document.getElementById('imageList');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-
-    // List of map images in docs/plots/maps/
-    const imageManifest = [
-        { name: 'wp2_observation_shader.png', title: 'WP2 Observation Data' },
-        { name: 'wp3_sensor_observation_shader.png', title: 'WP3 Sensor Observation Data' },
-        { name: 'WP2_WP3_observations_combined_shader.png', title: 'Combined WP2 + WP3 Observation Data' }
-    ];
-
-    function initGallery() {
-        images = imageManifest;
-
-        if (images.length === 0) {
-            galleryError.style.display = 'block';
-            prevBtn.disabled = true;
-            nextBtn.disabled = true;
-            return;
-        }
-
-        // Populate image list
-        imageList.innerHTML = images
-            .map((img, idx) => `<li><a href="javascript:void(0)" onclick="loadImage(${idx})">${img.title}</a></li>`)
-            .join('');
-
-        // Load first image
-        loadImage(0);
-    }
-
-    function loadImage(index) {
-        if (index < 0 || index >= images.length) return;
-
-        currentImageIndex = index;
-        const imageUrl = `plots/maps/${images[index].name}`;
-
-        galleryImage.src = imageUrl;
-        galleryImage.onerror = () => {
-            galleryError.style.display = 'block';
-            console.warn(`Failed to load: ${imageUrl}`);
-        };
-        galleryImage.onload = () => {
-            galleryError.style.display = 'none';
-        };
-
-        imageTitle.textContent = images[index].title;
-        imageCounter.textContent = `${index + 1} / ${images.length}`;
-
-        prevBtn.disabled = index === 0;
-        nextBtn.disabled = index === images.length - 1;
-    }
-
-    prevBtn.addEventListener('click', () => {
-        if (currentImageIndex > 0) loadImage(currentImageIndex - 1);
-    });
-
-    nextBtn.addEventListener('click', () => {
-        if (currentImageIndex < images.length - 1) loadImage(currentImageIndex + 1);
-    });
-
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') prevBtn.click();
-        if (e.key === 'ArrowRight') nextBtn.click();
-    });
-
-    // Initialize on page load
-    window.addEventListener('load', initGallery);
-</script>
-
 </body>
 
 </html>
