@@ -140,19 +140,31 @@ def add_inset_world(ax, x_left, x_right, y_bot, y_top, side, world_gdf):
 
 def plot_gdf_map(
         gdf,
-        output_path: Path,
+        out_base: Path,
+        filename: str,
         title: str = "",
         dasids_text: str = "",
         show_inset: bool = True,
         marker_size: float = 10,
-        alpha: float = 0.7
+        alpha: float = 0.7,
+        format: str = "png",
+        dpi: int = 300,
+        quality: int = 85
 ):
     """
-    Plot a single GeoDataFrame (EPSG:3857) to output_path PNG.
+    Plot a single GeoDataFrame (EPSG:3857) to output file.
     Adds an inset and a text box for DASIDs unless disabled.
     marker_size and alpha control the point style.
+
+    Args:
+        out_base: Output directory
+        filename: Filename without extension (extension added based on format)
+        format: "png" or "webp"
+        dpi: DPI for PNG output (default 300)
+        quality: Quality for WebP output 1-100 (default 85)
     """
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    out_base.mkdir(parents=True, exist_ok=True)
+    output_path = out_base / f"{filename}.{format.lower()}"
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_axes([0.05, 0.05, 0.9, 0.9])
@@ -225,30 +237,45 @@ def plot_gdf_map(
                       linewidth=0.5)
         )
 
-    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    # Save with appropriate format
+    save_kwargs = {"bbox_inches": "tight"}
+    if format.lower() == "webp":
+        save_kwargs["format"] = "webp"
+        save_kwargs["pil_kwargs"] = {"quality": quality}
+    else:  # png
+        save_kwargs["format"] = "png"
+        save_kwargs["dpi"] = dpi
+
+    fig.savefig(output_path, **save_kwargs)
     plt.close(fig)
     print(f"✔ Saved map: {output_path}")
 
 
-def plot_large_gdf(gdf, output_path, title=None, dasids=None):
+def plot_large_gdf(gdf, out_base: Path, filename: str, title=None, dasids=None, format="png", dpi=200, quality=85):
+    """
+    Plot large GeoDataFrame using Datashader with Cartopy overlay.
 
-    # Web Mercator global extent
-    # WEB_MERC_MAX_X = 20037508.34
-    # WEB_MERC_MIN_X = -20037508.34
-    # WEB_MERC_YMIN = -9074929
-    # WEB_MERC_YMAX = 16847944
+    Args:
+        out_base: Output directory
+        filename: Filename without extension (extension added based on format)
+        format: "png" or "webp"
+        dpi: DPI for PNG output (default 200)
+        quality: Quality for WebP output 1-100 (default 85)
+    """
 
-    # Web Mercator local extent
-    WEB_MERC_MAX_X = 5000000
-    WEB_MERC_MIN_X = -7500000
-    WEB_MERC_YMIN = -7500000
-    WEB_MERC_YMAX = 11500000
+    # ...existing code...
+    out_base.mkdir(parents=True, exist_ok=True)
+    output_path = out_base / f"{filename}.{format.lower()}"
 
-    # Web Mercator EU extent
-    WEB_MERC_MAX_X = 5000000
-    WEB_MERC_MIN_X = -1500000
-    WEB_MERC_YMIN = 3500000
-    WEB_MERC_YMAX = 9000000
+    # WEB_MERC_MAX_X = 5000000
+    # WEB_MERC_MIN_X = -1500000
+    # WEB_MERC_YMIN = 3500000
+    # WEB_MERC_YMAX = 9000000
+
+    WEB_MERC_MAX_X = 20037508.34
+    WEB_MERC_MIN_X = -20037508.34
+    WEB_MERC_YMIN = -9074929
+    WEB_MERC_YMAX = 16847944
 
     print("=== Starting plot_large_gdf ===")
 
@@ -261,8 +288,8 @@ def plot_large_gdf(gdf, output_path, title=None, dasids=None):
 
     # --- 2. Datashader canvas ---
     cvs = ds.Canvas(
-        plot_width=int(800*width/height),
-        plot_height=int(800*height/width),
+        plot_width=int(1200*width/height),
+        plot_height=int(1200*height/width),
         x_range=(WEB_MERC_MIN_X, WEB_MERC_MAX_X),
         y_range=(WEB_MERC_YMIN, WEB_MERC_YMAX)
     )
@@ -338,33 +365,57 @@ def plot_large_gdf(gdf, output_path, title=None, dasids=None):
             color="white"
         )
 
-    # --- 9. Save ---
-    fig.savefig(output_path, dpi=1000, bbox_inches="tight", facecolor="black")
+    # --- 9. Save with appropriate format ---
+    save_kwargs = {"bbox_inches": "tight", "facecolor": "black"}
+    if format.lower() == "webp":
+        save_kwargs["format"] = "webp"
+        save_kwargs["pil_kwargs"] = {"quality": quality}
+    else:  # png
+        save_kwargs["format"] = "png"
+        save_kwargs["dpi"] = dpi
+
+    fig.savefig(output_path, **save_kwargs)
     plt.close(fig)
     print("=== Finished plot_large_gdf ===")
 
 
-def plot_each_csv_individual(csv_files, outdir_base: Path):
-    """Plot every CSV in csv_files individually. Save outputs in outdir_base/map_per_dasid/."""
-    outdir = outdir_base
-    outdir.mkdir(parents=True, exist_ok=True)
+def plot_each_csv_individual(csv_files, out_base: Path, filename_prefix: str = "dasid", format: str = "png", dpi: int = 300, quality: int = 85):
+    """
+    Plot every CSV in csv_files individually. Save outputs in out_base with filename_prefix.
+
+    Args:
+        out_base: Output directory
+        filename_prefix: Prefix for filenames (default "dasid")
+        format: "png" or "webp"
+        dpi: DPI for PNG output (default 300)
+        quality: Quality for WebP output 1-100 (default 85)
+    """
+    out_base.mkdir(parents=True, exist_ok=True)
 
     for csv_path in csv_files:
         gdf = read_csv_as_unique_gdf(csv_path)
         if gdf is None:
             continue
         dasid = gdf["dasid"].iloc[0]
-        out_file = outdir / f"dasid_{dasid}.png"
-        plot_gdf_map(gdf, out_file, title=f"DASID {dasid}", dasids_text=dasid)
+        filename = f"{filename_prefix}_{dasid}"
+        plot_gdf_map(gdf, out_base, filename, title=f"DASID {dasid}", dasids_text=dasid,
+                    format=format, dpi=dpi, quality=quality)
 
 
-def plot_combined(csv_files, out_file_base: Path, title: str, show_inset=True):
+def plot_combined(csv_files, out_base: Path, filename_base: str, title: str, show_inset=True, format: str = "png", dpi: int = 300, quality: int = 85):
     """
     Combine all CSVs in csv_files and plot a single map.
     Generates two versions:
-      1) alpha=1, markersize=1
-      2) alpha=0.01, markersize=1
+      1) alpha=1, markersize=1 (saved as {filename_base}_alpha1)
+      2) alpha=0.01, markersize=1 (saved as {filename_base}_alpha0_01)
     The DASID textbox contains the comma-separated list of DASIDs used.
+
+    Args:
+        out_base: Output directory
+        filename_base: Base filename without extension or suffix
+        format: "png" or "webp"
+        dpi: DPI for PNG output (default 300)
+        quality: Quality for WebP output 1-100 (default 85)
     """
     gdfs = []
     dasids = []
@@ -385,31 +436,49 @@ def plot_combined(csv_files, out_file_base: Path, title: str, show_inset=True):
     dasids_text = ", ".join(dasids)
 
     # Version 1: alpha=1
-    out_file_alpha1 = out_file_base.with_name(f"{out_file_base.stem}_alpha1.png")
+    filename_alpha1 = f"{filename_base}_alpha1"
     plot_gdf_map(
         combined,
-        out_file_alpha1,
+        out_base,
+        filename_alpha1,
         title=title,
         dasids_text=dasids_text,
         show_inset=show_inset,
         marker_size=1,
-        alpha=1
+        alpha=1,
+        format=format,
+        dpi=dpi,
+        quality=quality
     )
 
     # Version 2: alpha=0.01
-    out_file_alpha001 = out_file_base.with_name(f"{out_file_base.stem}_alpha0_01.png")
+    filename_alpha001 = f"{filename_base}_alpha0_01"
     plot_gdf_map(
         combined,
-        out_file_alpha001,
+        out_base,
+        filename_alpha001,
         title=f"{title} (transparent)",
         dasids_text=dasids_text,
         show_inset=show_inset,
         marker_size=1,
-        alpha=0.01
+        alpha=0.01,
+        format=format,
+        dpi=dpi,
+        quality=quality
     )
 
 
-def plot_shader(csv_files, output_path, title):
+def plot_shader(csv_files, out_base: Path, filename: str, title, format: str = "png", dpi: int = 200, quality: int = 85):
+    """
+    Plot large dataset using Datashader with optional format selection.
+
+    Args:
+        out_base: Output directory
+        filename: Filename without extension
+        format: "png" or "webp"
+        dpi: DPI for PNG output (default 200)
+        quality: Quality for WebP output 1-100 (default 85)
+    """
     gdfs = []
     dasids = []
 
@@ -441,31 +510,32 @@ def plot_shader(csv_files, output_path, title):
     # # DASIDs text (comma-separated)
     dasids_text = ", ".join(dasids)
 
-    # Add DASID text to the title (optional)
-    # full_title = f"{title}\nDASIDs: {dasids_text}"
-
     # --- Call your existing fast Datashader plotter ---
     plot_large_gdf(
         gdf=combined,
-        output_path=output_path,
+        out_base=out_base,
+        filename=filename,
         title=title,
-        dasids=dasids_text
+        dasids=dasids_text,
+        format=format,
+        dpi=dpi,
+        quality=quality
     )
 
-    print(f"✔ Combined shader plot saved: {output_path}")
+    print(f"✔ Combined shader plot saved: {out_base / f'{filename}.{format.lower()}'}")
 
 
 if __name__ == "__main__":
     # input directories (adjust as needed)
-    dir_call1 = Path("../data/1.harvest_wp2_observation_data")
-    dir_wp3 = Path("../data/2.harvest_wp3_sensor_observation_data")
+    dir_call1 = Path("../../data/1.harvest_wp2_observation_data")
+    dir_wp3 = Path("../../data/2.harvest_wp3_sensor_observation_data")
 
     csv_call1 = sorted(dir_call1.glob("*.csv"))
     csv_wp3 = sorted(dir_wp3.glob("*.csv"))
     csv_all = csv_call1 + csv_wp3
 
     # where to write plots
-    out_base = Path("../plots")
+    out_base = Path("../../plots")
     out_base.mkdir(parents=True, exist_ok=True)
 
     # Load world once in Web Mercator for inset; set as global for helper use
@@ -499,9 +569,20 @@ if __name__ == "__main__":
     #               title="WP2 Observation Data")
 
     plot_shader(csv_call1,
-                out_base / "wp2_observation_shader.png",
-                title="WP2 Observation Data")
+                out_base=out_base,
+                filename="wp2_observation_shader",
+                title="WP2 Observation Data",
+                format='webp',
+                quality=100,
+                dpi=200)
 
+    plot_shader(csv_call1,
+                out_base=out_base,
+                filename="wp2_observation_shader",
+                title="WP2 Observation Data",
+                format='jpg',
+                quality=100,
+                dpi=200)
     # 3) WP3 combined
     # print(">> Plotting combined WP3 (sensor) map...")
 

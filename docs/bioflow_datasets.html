@@ -16,98 +16,24 @@
 
         <ul class="navbar-menu">
             <li><a href="index.html">Welcome</a></li>
+            <li><a href="maps.html">Spatial coverage</a></li>
+            <li><a href="taxonomic_diversity.html">Taxonomic Diversity</a></li>
+            <li><a href="temporal.html">Temporal Overview</a></li>
             <li><a href="bioflow_datasets.html">DTO-Bioflow datasets</a></li>
-            </tr>
-            <tr>
-                <td>8789</td>
-                <td><a href="https://www.vliz.be/nl/imis?dasid=8789" target="_blank">https://www.vliz.be/nl/imis?dasid=8789</a></td>
-            </tr>
-    <h2>Data flows</h2>
-    <div>
-        The DTO-Bioflow project contributes data to EDITO from diverse sources and via several pipelines. <br>
-        The full description of data flows can be consuled at the <b>project website</b>
-        (<a href="https://dto-bioflow.eu/data-flow">https://dto-bioflow.eu/data-flow</a>)
-        and via the <b>blueprint</b>
-        (<a href="https://zenodo.org/records/16538490">https://zenodo.org/records/16538490</a>)
-    </div>
-    <h2>Data visualization overview</h2>
-    <div>
-        Datasets are clustered in groups for visualization purposes.
-        <ul>
-            <li>
-                Data submitted to EMODnet and ingested in EDITO via pre-existing EMODnet-EDITO pipeline
-                <ul>
-                    <li>Work package 2 observation data (call-1)</li>
-                    <li>Work package 3 sensor observation data</li>
-                </ul>
-            </li>
-            <li>
-                Data hosted on other databases and ingested in EDTIO via newly developed pipelines
-                <ul>
-                    <li>ETN data (European Tracking Network)</li>
-                </ul>
-            </li>
         </ul>
     </div>
-    <h2>Work package 2 observation data (call-1)</h2>
-                <td><a href="https://www.vliz.be/nl/imis?dasid=8791" target="_blank">https://www.vliz.be/nl/imis?dasid=8791</a></td>
-            </tr>
+</nav>
+<main class="page-content">
+    <h2>Work package 2 observation data</h2>
+
+    <table class="dasid-table">
+        <thead>
             <tr>
-                <td>8792</td>
-                <td><a href="https://www.vliz.be/nl/imis?dasid=8792" target="_blank">https://www.vliz.be/nl/imis?dasid=8792</a></td>
+                <th>DASID</th>
+                <th>Link</th>
             </tr>
-            <tr>
-        <tbody id="wp2-dasid-tbody">
-                <td>8152</td>
-                <td colspan="2">Loading DASIDs...</td>
-            <tr>
-                <td>8153</td>
-                <td><a href="https://www.vliz.be/nl/imis?dasid=8153" target="_blank">https://www.vliz.be/nl/imis?dasid=8153</a></td>
-            </tr>
-    <h2>Work package 3 sensor observation data</h2>
-    <h2>ETN data (European Tracking Network)</h2>
-
-    <script>
-        (async () => {
-            const tbody = document.getElementById('wp2-dasid-tbody');
-            const sourceUrl = '../sources/dasid_wp2_observations_call1.txt';
-
-            const escapeHtml = (value) => String(value)
-                .replaceAll('&', '&amp;')
-                .replaceAll('<', '&lt;')
-                .replaceAll('>', '&gt;')
-                .replaceAll('"', '&quot;')
-                .replaceAll("'", '&#39;');
-
-            try {
-                const response = await fetch(sourceUrl, { cache: 'no-store' });
-                if (!response.ok) {
-                    tbody.innerHTML = `<tr><td colspan="2">Unable to load DASID list from ${escapeHtml(sourceUrl)}. HTTP ${response.status}.</td></tr>`;
-                    return;
-                }
-
-                const text = await response.text();
-                const ids = text
-                    .split(/\r?\n/)
-                    .map((line) => line.trim())
-                    .filter((line) => /^\d+$/.test(line));
-
-                if (!ids.length) {
-                    tbody.innerHTML = '<tr><td colspan="2">No DASIDs found in the source file.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = ids.map((id) => `
-                    <tr>
-                        <td>${id}</td>
-                        <td><a href="https://www.vliz.be/nl/imis?dasid=${id}" target="_blank" rel="noopener noreferrer">https://www.vliz.be/nl/imis?dasid=${id}</a></td>
-                    </tr>
-                `).join('');
-            } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="2">Unable to load DASID list from ${escapeHtml(sourceUrl)}. Serve the site over HTTP to enable fetching this file. ${escapeHtml(error.message || error)}</td></tr>`;
-            }
-        })();
-    </script>
+        </thead>
+        <tbody>
             </tr>
             <tr>
                 <td>8816</td>
@@ -293,9 +219,267 @@
     </table>
 
     <h2>Cluster 3: ETN data (European Tracking Network)</h2>
-
-
-</main>
+    <table class="dasid-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Parquet</th>
+                <th>Citation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>2010_phd_reubens_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2010_phd_reubens/2010_phd_reubens_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/437" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2010_phd_reubens_sync_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2010_phd_reubens_sync/2010_phd_reubens_sync_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>2011_Loire_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2011_Loire/2011_Loire_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>2011_rivierprik_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2011_rivierprik/2011_rivierprik_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/429" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2011_Warnow_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2011_Warnow/2011_Warnow_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/741" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2012_leopoldkanaal_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2012_leopoldkanaal/2012_leopoldkanaal_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/428" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2013_albertkanaal_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2013_albertkanaal/2013_albertkanaal_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/431" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2014_demer_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2014_demer/2014_demer_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/432" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2014_Frome_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2014_Frome/2014_Frome_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/733" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2014_Nene_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2014_Nene/2014_Nene_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/732" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2015_Albertkanaal_VPS_Ham_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2015_Albertkanaal_VPS_Ham/2015_Albertkanaal_VPS_Ham_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>2015_dijle_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2015_dijle/2015_dijle_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/430" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2015_homarus_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2015_homarus/2015_homarus_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/433" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2015_phd_verhelst_cod_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2015_phd_verhelst_cod/2015_phd_verhelst_cod_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/435" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2015_phd_verhelst_eel_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2015_phd_verhelst_eel/2015_phd_verhelst_eel_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/434" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>2019_Grotenete_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/2019_Grotenete/2019_Grotenete_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/742" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>ARAISOLA02_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/ARAISOLA02/ARAISOLA02_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>ARAISOLA03_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/ARAISOLA03/ARAISOLA03_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Artevigo_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Artevigo/Artevigo_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>BALANCE_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/BALANCE/BALANCE_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>BTN-IMEDEA_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/BTN-IMEDEA/BTN-IMEDEA_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Carp_Markermeer_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Carp_Markermeer/Carp_Markermeer_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>codnoise_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/codnoise/codnoise_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>COREMAR_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/COREMAR/COREMAR_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>CORYTRACK_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/CORYTRACK/CORYTRACK_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>DAbecasis_PhD_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/DAbecasis_PhD/DAbecasis_PhD_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>DAK_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/DAK/DAK_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>driederfzijlen_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/driederfzijlen/driederfzijlen_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Duurswold_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Duurswold/Duurswold_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>ESGL_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/ESGL/ESGL_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Gamerwolde_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Gamerwolde/Gamerwolde_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>hunze_eel_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/hunze_eel/hunze_eel_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Limfjord_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Limfjord/Limfjord_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Noordzeekanaal_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Noordzeekanaal/Noordzeekanaal_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/737" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>OP-Test_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/OP-Test/OP-Test_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>OTN-Hemnfjorden_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/OTN-Hemnfjorden/OTN-Hemnfjorden_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>OTN-Tosenfjorden_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/OTN-Tosenfjorden/OTN-Tosenfjorden_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>PhD_Barbara_Koeck_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/PhD_Barbara_Koeck/PhD_Barbara_Koeck_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>PhD_Goossens_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/PhD_Goossens/PhD_Goossens_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Porbeagles_Europe_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Porbeagles_Europe/Porbeagles_Europe_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>PTN-Silver-eel-Mondego_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/PTN-Silver-eel-Mondego/PTN-Silver-eel-Mondego_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/739" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>RAJIBAL-COFIB_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/RAJIBAL-COFIB/RAJIBAL-COFIB_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>RATJADA_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/RATJADA/RATJADA_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Reelease_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Reelease/Reelease_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>Rijke_Noordzee_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/Rijke_Noordzee/Rijke_Noordzee_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>SARTELTG_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/SARTELTG/SARTELTG_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>SARTELZINGARO_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/SARTELZINGARO/SARTELZINGARO_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>SEMP_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/SEMP/SEMP_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td><a href="https://doi.org/10.14284/746" target="_blank">doi (link)</a></td>
+            </tr>
+            <tr>
+                <td>SmartBay_animals_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/SmartBay_animals/SmartBay_animals_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+            <tr>
+                <td>ZRM_animals_detections</td>
+                <td><a href="https://www.lifewatch.be/etn/parquet/detections/ZRM_animals/ZRM_animals_detections.parquet" target="_blank">parquet (link)</a></td>
+                <td>—</td>
+            </tr>
+        </tbody>
+    </table>
 
 <footer class="footer" role="contentinfo">
 
