@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PH1 Changes in Plankton Communities</title>
+    <title>DTO-Bioflow dataset visualisation</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -16,12 +16,66 @@
 
         <ul class="navbar-menu">
             <li><a href="index.html">Welcome</a></li>
+            <li><a href="maps.html">Spatial coverage</a></li>
+            <li><a href="taxonomic_diversity.html">Taxonomic Diversity</a></li>
+            <li><a href="temporal.html">Temporal Overview</a></li>
+            <li><a href="bioflow_datasets.html">DTO-Bioflow datasets</a></li>
         </ul>
     </div>
 </nav>
 
 <main class="page-content">
-    To be created.
+    <h2>Welcome to DTO-Bioflow Data Contribution Visualization</h2>
+    <div>some basic text</div>
+    <h2>Data flows</h2>
+    <div>
+        The DTO-Bioflow project contributes data to EDITO from diverse sources and via several pipelines. <br>
+        The full description of data flows can be consuled at the <b>project website</b>
+        (<a href="https://dto-bioflow.eu/data-flow">https://dto-bioflow.eu/data-flow</a>)
+        and via the <b>blueprint</b>
+        (<a href="https://zenodo.org/records/16538490">https://zenodo.org/records/16538490</a>).
+    </div>
+    <h2>Data Clusters</h2>
+    <div>
+        For providing better overview, datasets are clustered in this visualization project. <br>
+        Following clusters have been identified based on the data sources and pipelines:
+        <ul>
+            <li>
+                EMODnet Pipeline: data submitted to EMODnet and ingested in EDITO via pre-existing EMODnet-EDITO pipeline
+                <ul>
+                    <li><b>Cluster 1: Observation data (WP2 call-1)</b></li>
+                    <li><b>Cluster 2: Sensor observation data (WP3)</b></li>
+                </ul>
+            </li>
+            <li>
+                Direct connections: data hosted on other databases and ingested in EDITO via newly developed pipelines
+                <ul>
+                    <li><b>Cluster 3: ETN data (European Tracking Network)</b></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <div class="gallery-container">
+        <div class="gallery-viewer">
+            <img id="galleryImage" src="" alt="Gallery image" class="gallery-image">
+            <div class="gallery-error" id="galleryError" style="display:none;">No images found. Please ensure plot maps exist.</div>
+        </div>
+
+        <div class="gallery-controls">
+            <button id="prevBtn" class="gallery-btn">← Previous</button>
+            <div class="gallery-info">
+                <span id="imageCounter">0 / 0</span>
+                <div id="imageTitle" class="gallery-title" role="status" aria-live="polite"></div>
+            </div>
+            <button id="nextBtn" class="gallery-btn">Next →</button>
+        </div>
+
+        <div class="gallery-list">
+            <p><strong>Available Maps:</strong></p>
+            <ul id="imageList"></ul>
+        </div>
+    </div>
+
 </main>
 
 <footer class="footer" role="contentinfo">
@@ -47,6 +101,84 @@
 
 </footer>
 
+<script>
+    // Image gallery viewer
+    let currentImageIndex = 0;
+    let images = [];
+
+    const galleryImage = document.getElementById('galleryImage');
+    const galleryError = document.getElementById('galleryError');
+    const imageCounter = document.getElementById('imageCounter');
+    const imageTitle = document.getElementById('imageTitle');
+    const imageList = document.getElementById('imageList');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    // List of map images in docs/plots/maps/
+    const imageManifest = [
+        { name: 'wp2_observation_shader.png', title: 'WP2 Observation Data' },
+        { name: 'wp3_sensor_observation_shader.png', title: 'WP3 Sensor Observation Data' },
+        { name: 'WP2_WP3_observations_combined_shader.png', title: 'Combined WP2 + WP3 Observation Data' }
+    ];
+
+    function initGallery() {
+        images = imageManifest;
+
+        if (images.length === 0) {
+            galleryError.style.display = 'block';
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            return;
+        }
+
+        // Populate image list
+        imageList.innerHTML = images
+            .map((img, idx) => `<li><a href="javascript:void(0)" onclick="loadImage(${idx})">${img.title}</a></li>`)
+            .join('');
+
+        // Load first image
+        loadImage(0);
+    }
+
+    function loadImage(index) {
+        if (index < 0 || index >= images.length) return;
+
+        currentImageIndex = index;
+        const imageUrl = `plots/maps/${images[index].name}`;
+
+        galleryImage.src = imageUrl;
+        galleryImage.onerror = () => {
+            galleryError.style.display = 'block';
+            console.warn(`Failed to load: ${imageUrl}`);
+        };
+        galleryImage.onload = () => {
+            galleryError.style.display = 'none';
+        };
+
+        imageTitle.textContent = images[index].title;
+        imageCounter.textContent = `${index + 1} / ${images.length}`;
+
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === images.length - 1;
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentImageIndex > 0) loadImage(currentImageIndex - 1);
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentImageIndex < images.length - 1) loadImage(currentImageIndex + 1);
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') prevBtn.click();
+        if (e.key === 'ArrowRight') nextBtn.click();
+    });
+
+    // Initialize on page load
+    window.addEventListener('load', initGallery);
+</script>
 
 </body>
 

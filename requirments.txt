@@ -1,0 +1,11 @@
+geopandas
+pandas
+pyarrow
+pystac_client
+contextily
+matplotlib
+cartopy
+pillow
+datashader
+colorcet
+duckdb

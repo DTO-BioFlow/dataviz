@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DTO-Bioflow dataset visualisation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<nav class="navbar">
+    <div class="navbar-container">
+        <a href="https://dto-bioflow.eu/" class="navbar-logo">
+            <img src="https://dto-bioflow.eu/themes/custom/skeleton/logo.svg"
+                 alt="DTO-Bioflow logo">
+        </a>
+
+        <ul class="navbar-menu">
+            <li><a href="index.html">Welcome</a></li>
+            <li><a href="bioflow_datasets.html">DTO-Bioflow datasets</a></li>
+            </tr>
+            <tr>
+                <td>8789</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8789" target="_blank">https://www.vliz.be/nl/imis?dasid=8789</a></td>
+            </tr>
+    <h2>Data flows</h2>
+    <div>
+        The DTO-Bioflow project contributes data to EDITO from diverse sources and via several pipelines. <br>
+        The full description of data flows can be consuled at the <b>project website</b>
+        (<a href="https://dto-bioflow.eu/data-flow">https://dto-bioflow.eu/data-flow</a>)
+        and via the <b>blueprint</b>
+        (<a href="https://zenodo.org/records/16538490">https://zenodo.org/records/16538490</a>)
+    </div>
+    <h2>Data visualization overview</h2>
+    <div>
+        Datasets are clustered in groups for visualization purposes.
+        <ul>
+            <li>
+                Data submitted to EMODnet and ingested in EDITO via pre-existing EMODnet-EDITO pipeline
+                <ul>
+                    <li>Work package 2 observation data (call-1)</li>
+                    <li>Work package 3 sensor observation data</li>
+                </ul>
+            </li>
+            <li>
+                Data hosted on other databases and ingested in EDTIO via newly developed pipelines
+                <ul>
+                    <li>ETN data (European Tracking Network)</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+    <h2>Work package 2 observation data (call-1)</h2>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8791" target="_blank">https://www.vliz.be/nl/imis?dasid=8791</a></td>
+            </tr>
+            <tr>
+                <td>8792</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8792" target="_blank">https://www.vliz.be/nl/imis?dasid=8792</a></td>
+            </tr>
+            <tr>
+        <tbody id="wp2-dasid-tbody">
+                <td>8152</td>
+                <td colspan="2">Loading DASIDs...</td>
+            <tr>
+                <td>8153</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8153" target="_blank">https://www.vliz.be/nl/imis?dasid=8153</a></td>
+            </tr>
+    <h2>Work package 3 sensor observation data</h2>
+    <h2>ETN data (European Tracking Network)</h2>
+
+    <script>
+        (async () => {
+            const tbody = document.getElementById('wp2-dasid-tbody');
+            const sourceUrl = '../sources/dasid_wp2_observations_call1.txt';
+
+            const escapeHtml = (value) => String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+
+            try {
+                const response = await fetch(sourceUrl, { cache: 'no-store' });
+                if (!response.ok) {
+                    tbody.innerHTML = `<tr><td colspan="2">Unable to load DASID list from ${escapeHtml(sourceUrl)}. HTTP ${response.status}.</td></tr>`;
+                    return;
+                }
+
+                const text = await response.text();
+                const ids = text
+                    .split(/\r?\n/)
+                    .map((line) => line.trim())
+                    .filter((line) => /^\d+$/.test(line));
+
+                if (!ids.length) {
+                    tbody.innerHTML = '<tr><td colspan="2">No DASIDs found in the source file.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = ids.map((id) => `
+                    <tr>
+                        <td>${id}</td>
+                        <td><a href="https://www.vliz.be/nl/imis?dasid=${id}" target="_blank" rel="noopener noreferrer">https://www.vliz.be/nl/imis?dasid=${id}</a></td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="2">Unable to load DASID list from ${escapeHtml(sourceUrl)}. Serve the site over HTTP to enable fetching this file. ${escapeHtml(error.message || error)}</td></tr>`;
+            }
+        })();
+    </script>
+            </tr>
+            <tr>
+                <td>8816</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8816" target="_blank">https://www.vliz.be/nl/imis?dasid=8816</a></td>
+            </tr>
+            <tr>
+                <td>8814</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8814" target="_blank">https://www.vliz.be/nl/imis?dasid=8814</a></td>
+            </tr>
+            <tr>
+                <td>8807</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8807" target="_blank">https://www.vliz.be/nl/imis?dasid=8807</a></td>
+            </tr>
+            <tr>
+                <td>8808</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8808" target="_blank">https://www.vliz.be/nl/imis?dasid=8808</a></td>
+            </tr>
+            <tr>
+                <td>8809</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8809" target="_blank">https://www.vliz.be/nl/imis?dasid=8809</a></td>
+            </tr>
+            <tr>
+                <td>8810</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8810" target="_blank">https://www.vliz.be/nl/imis?dasid=8810</a></td>
+            </tr>
+            <tr>
+                <td>8811</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8811" target="_blank">https://www.vliz.be/nl/imis?dasid=8811</a></td>
+            </tr>
+            <tr>
+                <td>8812</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8812" target="_blank">https://www.vliz.be/nl/imis?dasid=8812</a></td>
+            </tr>
+            <tr>
+                <td>8813</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8813" target="_blank">https://www.vliz.be/nl/imis?dasid=8813</a></td>
+            </tr>
+            <tr>
+                <td>8817</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8817" target="_blank">https://www.vliz.be/nl/imis?dasid=8817</a></td>
+            </tr>
+            <tr>
+                <td>8818</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8818" target="_blank">https://www.vliz.be/nl/imis?dasid=8818</a></td>
+            </tr>
+            <tr>
+                <td>4687</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=4687" target="_blank">https://www.vliz.be/nl/imis?dasid=4687</a></td>
+            </tr>
+            <tr>
+                <td>4688</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=4688" target="_blank">https://www.vliz.be/nl/imis?dasid=4688</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Cluster 2: Work package 3 sensor observation data</h2>
+    <table class="dasid-table">
+        <thead>
+            <tr>
+                <th>DASID</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>3117</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=3117" target="_blank">https://www.vliz.be/nl/imis?dasid=3117</a></td>
+            </tr>
+            <tr>
+                <td>4687</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=4687" target="_blank">https://www.vliz.be/nl/imis?dasid=4687</a></td>
+            </tr>
+            <tr>
+                <td>4688</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=4688" target="_blank">https://www.vliz.be/nl/imis?dasid=4688</a></td>
+            </tr>
+            <tr>
+                <td>5531</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=5531" target="_blank">https://www.vliz.be/nl/imis?dasid=5531</a></td>
+            </tr>
+            <tr>
+                <td>5846</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=5846" target="_blank">https://www.vliz.be/nl/imis?dasid=5846</a></td>
+            </tr>
+            <tr>
+                <td>5850</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=5850" target="_blank">https://www.vliz.be/nl/imis?dasid=5850</a></td>
+            </tr>
+            <tr>
+                <td>5867</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=5867" target="_blank">https://www.vliz.be/nl/imis?dasid=5867</a></td>
+            </tr>
+            <tr>
+                <td>5868</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=5868" target="_blank">https://www.vliz.be/nl/imis?dasid=5868</a></td>
+            </tr>
+            <tr>
+                <td>5871</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=5871" target="_blank">https://www.vliz.be/nl/imis?dasid=5871</a></td>
+            </tr>
+            <tr>
+                <td>5872</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=5872" target="_blank">https://www.vliz.be/nl/imis?dasid=5872</a></td>
+            </tr>
+            <tr>
+                <td>5873</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=5873" target="_blank">https://www.vliz.be/nl/imis?dasid=5873</a></td>
+            </tr>
+            <tr>
+                <td>6581</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=6581" target="_blank">https://www.vliz.be/nl/imis?dasid=6581</a></td>
+            </tr>
+            <tr>
+                <td>7918</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7918" target="_blank">https://www.vliz.be/nl/imis?dasid=7918</a></td>
+            </tr>
+            <tr>
+                <td>7919</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7919" target="_blank">https://www.vliz.be/nl/imis?dasid=7919</a></td>
+            </tr>
+            <tr>
+                <td>7921</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7921" target="_blank">https://www.vliz.be/nl/imis?dasid=7921</a></td>
+            </tr>
+            <tr>
+                <td>7932</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7932" target="_blank">https://www.vliz.be/nl/imis?dasid=7932</a></td>
+            </tr>
+            <tr>
+                <td>7937</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7937" target="_blank">https://www.vliz.be/nl/imis?dasid=7937</a></td>
+            </tr>
+            <tr>
+                <td>7938</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7938" target="_blank">https://www.vliz.be/nl/imis?dasid=7938</a></td>
+            </tr>
+            <tr>
+                <td>7940</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7940" target="_blank">https://www.vliz.be/nl/imis?dasid=7940</a></td>
+            </tr>
+            <tr>
+                <td>7941</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7941" target="_blank">https://www.vliz.be/nl/imis?dasid=7941</a></td>
+            </tr>
+            <tr>
+                <td>7942</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7942" target="_blank">https://www.vliz.be/nl/imis?dasid=7942</a></td>
+            </tr>
+            <tr>
+                <td>7943</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7943" target="_blank">https://www.vliz.be/nl/imis?dasid=7943</a></td>
+            </tr>
+            <tr>
+                <td>7944</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=7944" target="_blank">https://www.vliz.be/nl/imis?dasid=7944</a></td>
+            </tr>
+            <tr>
+                <td>8152</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8152" target="_blank">https://www.vliz.be/nl/imis?dasid=8152</a></td>
+            </tr>
+            <tr>
+                <td>8153</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8153" target="_blank">https://www.vliz.be/nl/imis?dasid=8153</a></td>
+            </tr>
+            <tr>
+                <td>8357</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8357" target="_blank">https://www.vliz.be/nl/imis?dasid=8357</a></td>
+            </tr>
+            <tr>
+                <td>8612</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8612" target="_blank">https://www.vliz.be/nl/imis?dasid=8612</a></td>
+            </tr>
+            <tr>
+                <td>8617</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8617" target="_blank">https://www.vliz.be/nl/imis?dasid=8617</a></td>
+            </tr>
+            <tr>
+                <td>8744</td>
+                <td><a href="https://www.vliz.be/nl/imis?dasid=8744" target="_blank">https://www.vliz.be/nl/imis?dasid=8744</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Cluster 3: ETN data (European Tracking Network)</h2>
+
+
+</main>
+
+<footer class="footer" role="contentinfo">
+
+    <div class="footer-top">
+        <div class="footer-container">
+
+            <div class="footer-left">
+                <img src="https://dto-bioflow.eu/themes/custom/skeleton/images/flag_funded_eu.svg"
+                     alt="Funded by the European Union">
+            </div>
+            <div>
+                The DTO-Bioflow project is funded by the European Union under the Horizon Europe Programme,
+                <a href="https://cordis.europa.eu/project/id/101112823/results" target="_blank" rel="noopener noreferrer"> Grant Agreement No. 101112823</a>.
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>© DTO-Bioflow — Funded by the European Union (Horizon Europe)</p>
+    </div>
+
+</footer>
+
+
+</body>
+
+</html>
