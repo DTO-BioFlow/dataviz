@@ -127,7 +127,7 @@
                 <option value="etn">Cluster 3: ETN data (European Tracking Network)</option>
             </select>
             <div id="layer-info"></div>
-            <div id="colormap-bar" title="Quantile color scale">
+            <div id="colormap-bar">
                 <div class="colormap-gradient" id="colormap-gradient"></div>
                 <div class="colormap-ticks" id="colormap-ticks"></div>
             </div>
@@ -173,6 +173,9 @@
             isDarkMode = !isDarkMode;
             themeToggle.textContent = isDarkMode ? '☀️ Light' : '🌙 Dark';
             addTileLayer();
+
+            const selectedLayer = document.getElementById('map-selector').value;
+            loadMapLayer(selectedLayer);
         });
 
         // Fullscreen toggle functionality
@@ -200,17 +203,7 @@
             }
         });
 
-        // Matplotlib viridis colormap (sampled) - dark purple -> yellow
-        function getViridisColor(normalized) {
-            // Sample points from matplotlib viridis colormap
-            const colors = [
-                { r: 68, g: 1, b: 84 },     // 0%
-                { r: 59, g: 82, b: 139 },   // 25%
-                { r: 33, g: 144, b: 141 },  // 50%
-                { r: 94, g: 201, b: 98 },   // 75%
-                { r: 253, g: 231, b: 37 }   // 100%
-            ];
-
+        function interpolatePalette(normalized, colors) {
             const position = Math.max(0, Math.min(1, normalized)) * (colors.length - 1);
             const index = Math.floor(position);
             const nextIndex = Math.min(colors.length - 1, Math.ceil(position));
@@ -223,12 +216,34 @@
 
             const c1 = colors[index];
             const c2 = colors[nextIndex];
-
             const r = Math.round(c1.r + (c2.r - c1.r) * fraction);
             const g = Math.round(c1.g + (c2.g - c1.g) * fraction);
             const b = Math.round(c1.b + (c2.b - c1.b) * fraction);
-
             return `rgb(${r},${g},${b})`;
+        }
+
+        function getViridisColor(normalized) {
+            return interpolatePalette(normalized, [
+                { r: 68, g: 1, b: 84 },
+                { r: 59, g: 82, b: 139 },
+                { r: 33, g: 144, b: 141 },
+                { r: 94, g: 201, b: 98 },
+                { r: 253, g: 231, b: 37 }
+            ]);
+        }
+
+        function getBluesColor(normalized) {
+            return interpolatePalette(normalized, [
+                { r: 247, g: 251, b: 255 },
+                { r: 222, g: 235, b: 247 },
+                { r: 158, g: 202, b: 225 },
+                { r: 49, g: 130, b: 189 },
+                { r: 8, g: 48, b: 107 }
+            ]);
+        }
+
+        function getThemeColor(normalized) {
+            return isDarkMode ? getBluesColor(normalized) : getViridisColor(normalized);
         }
 
         // Log normalization: maps values using log10 scale to 0-1
@@ -282,7 +297,7 @@
 
             const logMin = Math.log10(minPositive);
             const logMax = Math.log10(maxCount);
-            const colorStops = qs.map((q, i) => `${getViridisColor(q)} ${Math.round((i/(qs.length-1))*100)}%`);
+            const colorStops = qs.map((q, i) => `${getThemeColor(q)} ${Math.round((i/(qs.length-1))*100)}%`);
             gradientEl.style.background = `linear-gradient(90deg, ${colorStops.join(', ')})`;
 
             qs.forEach((q, i) => {
@@ -355,7 +370,7 @@
                             style: (feature) => {
                                 const count = feature.properties.count || 0;
                                 const normalizedLog = logNormalize(count, minPositive, maxCount);
-                                const color = getViridisColor(normalizedLog);
+                                const color = getThemeColor(normalizedLog);
                                 return {
                                     fillColor: color,
                                     color: color,
@@ -374,7 +389,7 @@
                             pointToLayer: (feature, latlng) => {
                                 const count = feature.properties.count || 0;
                                 const normalizedLog = logNormalize(count, minPositive, maxCount);
-                                const color = getViridisColor(normalizedLog);
+                                const color = getThemeColor(normalizedLog);
                                 const marker = L.circleMarker(latlng, {
                                     radius: 6,
                                     fillColor: color,
