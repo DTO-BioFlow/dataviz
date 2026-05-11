@@ -7,10 +7,72 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map { width: 100%; height: calc(100vh - 250px); margin: 20px 0; border: 1px solid #ccc; }
+        #map { width: 100%; height: calc(100vh - 250px); margin: 20px 0; border: 1px solid #ccc; position: relative; }
         .geojson-help { margin-top:8px; font-size:0.95rem; color:#333 }
         #layer-info { margin-bottom: 10px; font-size: 1rem; color: #333; }
         #map-selector { padding: 8px; font-size: 1rem; }
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+        }
+        .fullscreen-btn, .theme-toggle {
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        .fullscreen-btn:hover, .theme-toggle:hover {
+            background: #f0f0f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        body.map-fullscreen {
+            overflow: hidden;
+        }
+        body.map-fullscreen main.page-content {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            z-index: 9999;
+            background: white;
+        }
+        body.map-fullscreen h2 {
+            display: none;
+        }
+        body.map-fullscreen > div:not(#map) {
+            display: none !important;
+        }
+        body.map-fullscreen [style*="margin-bottom: 15px"] {
+            display: none;
+        }
+        body.map-fullscreen #layer-info {
+            display: none;
+        }
+        body.map-fullscreen nav.navbar {
+            display: none;
+        }
+        body.map-fullscreen footer.footer {
+            display: none;
+        }
+        body.map-fullscreen #map {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -42,19 +104,66 @@
     </div>
     <div id="layer-info"></div>
 
-    <div id="map"></div>
+    <div id="map">
+        <div class="map-controls">
+            <button class="theme-toggle" id="theme-toggle" title="Toggle dark/light theme">🌙 Dark</button>
+            <button class="fullscreen-btn" id="fullscreen-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
+        </div>
+    </div>
     <div id="geojson-help" class="geojson-help"></div>
 
     <script>
         // Initialize single map
         const map = L.map('map').setView([52.5, 10.0], 4);
 
-        // Add OpenStreetMap tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors', maxZoom: 19
-        }).addTo(map);
+        let currentTileLayer = null;
+        let isDarkMode = false;
+
+        // Function to add tile layer based on theme
+        function addTileLayer() {
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
+
+            if (isDarkMode) {
+                currentTileLayer = L.tileLayer('https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '© Esri',
+                    maxZoom: 19
+                }).addTo(map);
+            } else {
+                currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+            }
+        }
+
+        addTileLayer();
 
         let currentLayer = null;
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            themeToggle.textContent = isDarkMode ? '☀️ Light' : '🌙 Dark';
+            addTileLayer();
+        });
+
+        // Fullscreen toggle functionality
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        let isFullscreen = false;
+
+        fullscreenBtn.addEventListener('click', () => {
+            isFullscreen = !isFullscreen;
+            document.body.classList.toggle('map-fullscreen', isFullscreen);
+            fullscreenBtn.textContent = isFullscreen ? '✕ Exit Fullscreen' : '⛶ Fullscreen';
+
+            // Trigger map resize after DOM update
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+        });
 
         // Matplotlib blues colormap - light blue to dark marine blue
         function getMatplotlibBluesColor(normalized) {
