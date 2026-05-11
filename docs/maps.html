@@ -31,6 +31,11 @@
             padding: 8px;
             font-size: 0.95rem;
         }
+        #colormap-mode {
+            width: 100%;
+            padding: 8px;
+            font-size: 0.95rem;
+        }
         .overlay-btn {
             width: 100%;
             background: white;
@@ -124,6 +129,10 @@
                 <option value="etn">Cluster 3: ETN data (European Tracking Network)</option>
             </select>
             <div id="layer-info"></div>
+            <select id="colormap-mode" title="Choose color normalization mode">
+                <option value="quantile" selected>Quantile colormap</option>
+                <option value="linear">Linear colormap</option>
+            </select>
             <button class="overlay-btn theme-toggle" id="theme-toggle" title="Toggle dark/light theme">🌙 Dark</button>
             <button class="overlay-btn fullscreen-btn" id="fullscreen-btn" title="Toggle fullscreen">⛶ Fullscreen</button>
         </div>
@@ -159,6 +168,7 @@
         addTileLayer();
 
         let currentLayer = null;
+        let colormapMode = 'quantile';
 
         // Theme toggle functionality
         const themeToggle = document.getElementById('theme-toggle');
@@ -226,6 +236,9 @@
 
         // Quantile normalization: maps values to their quantile positions (0-1)
         function quantileNormalize(value, sortedValues) {
+            if (sortedValues.length <= 1) {
+                return 0.5;
+            }
             let left = 0, right = sortedValues.length - 1;
             while (left < right) {
                 const mid = Math.floor((left + right) / 2);
@@ -236,6 +249,15 @@
                 }
             }
             return left / (sortedValues.length - 1);
+        }
+
+        function normalizeCount(value, sortedValues, minValue, maxValue) {
+            if (colormapMode === 'linear') {
+                const range = maxValue - minValue;
+                if (range <= 0) return 0.5;
+                return (value - minValue) / range;
+            }
+            return quantileNormalize(value, sortedValues);
         }
 
         // Configuration for each map layer
@@ -279,6 +301,8 @@
                     const counts = data.features
                         .map(feature => feature.properties.count || 0)
                         .sort((a, b) => a - b);
+                    const minCount = counts.length ? counts[0] : 0;
+                    const maxCount = counts.length ? counts[counts.length - 1] : 0;
 
                     // Calculate total count
                     const totalCount = counts.reduce((sum, c) => sum + c, 0);
@@ -288,8 +312,8 @@
                         currentLayer = L.geoJSON(data, {
                             style: (feature) => {
                                 const count = feature.properties.count || 0;
-                                const normalizedQuantile = quantileNormalize(count, counts);
-                                const color = getMatplotlibBluesColor(normalizedQuantile);
+                                const normalized = normalizeCount(count, counts, minCount, maxCount);
+                                const color = getMatplotlibBluesColor(normalized);
                                 return {
                                     fillColor: color,
                                     color: color,
@@ -307,8 +331,8 @@
                         currentLayer = L.geoJSON(data, {
                             pointToLayer: (feature, latlng) => {
                                 const count = feature.properties.count || 0;
-                                const normalizedQuantile = quantileNormalize(count, counts);
-                                const color = getMatplotlibBluesColor(normalizedQuantile);
+                                const normalized = normalizeCount(count, counts, minCount, maxCount);
+                                const color = getMatplotlibBluesColor(normalized);
                                 const marker = L.circleMarker(latlng, {
                                     radius: 6,
                                     fillColor: color,
@@ -340,6 +364,12 @@
         // Handle dropdown selection
         document.getElementById('map-selector').addEventListener('change', (e) => {
             loadMapLayer(e.target.value);
+        });
+
+        document.getElementById('colormap-mode').addEventListener('change', (e) => {
+            colormapMode = e.target.value;
+            const selectedLayer = document.getElementById('map-selector').value;
+            loadMapLayer(selectedLayer);
         });
 
         // Load initial layer (WP2)
