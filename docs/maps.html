@@ -231,21 +231,16 @@
             return `rgb(${r},${g},${b})`;
         }
 
-        // Quantile normalization: maps values to their quantile positions (0-1)
-        function quantileNormalize(value, sortedValues) {
-            if (sortedValues.length <= 1) {
-                return 0.5;
-            }
-            let left = 0, right = sortedValues.length - 1;
-            while (left < right) {
-                const mid = Math.floor((left + right) / 2);
-                if (sortedValues[mid] < value) {
-                    left = mid + 1;
-                } else {
-                    right = mid;
-                }
-            }
-            return left / (sortedValues.length - 1);
+        // Log normalization: maps values using log10 scale to 0-1
+        function logNormalize(value, minPositive, maxValue) {
+            // If there are no positive values, fall back to middle
+            if (!minPositive || !maxValue || maxValue <= 0) return 0.5;
+            if (value <= 0) return 0; // treat zeros as the minimum on log scale
+            const logMin = Math.log10(minPositive);
+            const logMax = Math.log10(maxValue);
+            if (logMax <= logMin) return 0.5;
+            const v = Math.log10(value);
+            return (v - logMin) / (logMax - logMin);
         }
 
         // format numbers compactly with up to 3 significant digits and K/M suffixes
@@ -263,30 +258,40 @@
             return s + 'K';
         }
 
-        // Render the horizontal quantile colormap and the numeric labels for the current layer
-        function renderColormap(counts) {
+        // Render the horizontal log colormap and the numeric labels for the current layer
+        function renderColormap(counts, minPositive, maxCount) {
             const gradientEl = document.getElementById('colormap-gradient');
             const ticksEl = document.getElementById('colormap-ticks');
-            // choose 5 quantile ticks: 0%,25%,50%,75%,100%
+            // choose 5 log-spaced ticks between minPositive and maxCount (0%,25%,50%,75%,100% on log scale)
             const qs = [0, 0.25, 0.5, 0.75, 1];
-            const n = counts.length;
-            const stops = qs.map(q => {
-                if (n === 0) return 0;
-                const idx = Math.floor(q * (n - 1));
-                return counts[Math.max(0, Math.min(n - 1, idx))] || 0;
-            });
+            ticksEl.innerHTML = '';
 
-            // build gradient using matplotlib blues sampled at quantile fractions
+            // If there are no positive values, show zeros
+            if (!minPositive || !maxCount || minPositive <= 0 || maxCount <= 0) {
+                const colorStops = qs.map((q, i) => `${getViridisColor(q)} ${Math.round((i/(qs.length-1))*100)}%`);
+                gradientEl.style.background = `linear-gradient(90deg, ${colorStops.join(', ')})`;
+                qs.forEach((q, i) => {
+                    const span = document.createElement('span');
+                    span.textContent = '0';
+                    span.style.flex = '1';
+                    span.style.textAlign = i === 0 ? 'left' : (i === qs.length - 1 ? 'right' : 'center');
+                    ticksEl.appendChild(span);
+                });
+                return;
+            }
+
+            const logMin = Math.log10(minPositive);
+            const logMax = Math.log10(maxCount);
             const colorStops = qs.map((q, i) => `${getViridisColor(q)} ${Math.round((i/(qs.length-1))*100)}%`);
             gradientEl.style.background = `linear-gradient(90deg, ${colorStops.join(', ')})`;
 
-            // build tick labels
-            ticksEl.innerHTML = '';
-            stops.forEach((val, i) => {
+            qs.forEach((q, i) => {
+                const logVal = logMin + q * (logMax - logMin);
+                const val = Math.pow(10, logVal);
                 const span = document.createElement('span');
-                span.textContent = formatCompact(val);
+                span.textContent = formatCompact(Math.round(val));
                 span.style.flex = '1';
-                span.style.textAlign = i === 0 ? 'left' : (i === stops.length - 1 ? 'right' : 'center');
+                span.style.textAlign = i === 0 ? 'left' : (i === qs.length - 1 ? 'right' : 'center');
                 ticksEl.appendChild(span);
             });
         }
@@ -333,8 +338,13 @@
                         .map(feature => feature.properties.count || 0)
                         .sort((a, b) => a - b);
 
-                    // update colormap visualization for this layer
-                    try { renderColormap(counts); } catch (e) { console.warn('Could not render colormap', e); }
+                    // derive min positive and max for log scale
+                    const positiveCounts = counts.filter(c => c > 0);
+                    const minPositive = positiveCounts.length ? positiveCounts[0] : 0;
+                    const maxCount = counts.length ? counts[counts.length - 1] : 0;
+
+                    // update colormap visualization for this layer (log scale)
+                    try { renderColormap(counts, minPositive, maxCount); } catch (e) { console.warn('Could not render colormap', e); }
 
                     // Calculate total count
                     const totalCount = counts.reduce((sum, c) => sum + c, 0);
@@ -344,8 +354,8 @@
                         currentLayer = L.geoJSON(data, {
                             style: (feature) => {
                                 const count = feature.properties.count || 0;
-                                const normalizedQuantile = quantileNormalize(count, counts);
-                                const color = getViridisColor(normalizedQuantile);
+                                const normalizedLog = logNormalize(count, minPositive, maxCount);
+                                const color = getViridisColor(normalizedLog);
                                 return {
                                     fillColor: color,
                                     color: color,
@@ -363,8 +373,8 @@
                         currentLayer = L.geoJSON(data, {
                             pointToLayer: (feature, latlng) => {
                                 const count = feature.properties.count || 0;
-                                const normalizedQuantile = quantileNormalize(count, counts);
-                                const color = getViridisColor(normalizedQuantile);
+                                const normalizedLog = logNormalize(count, minPositive, maxCount);
+                                const color = getViridisColor(normalizedLog);
                                 const marker = L.circleMarker(latlng, {
                                     radius: 6,
                                     fillColor: color,
