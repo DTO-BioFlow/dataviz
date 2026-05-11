@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map, #map-wp2 { width: 100%; height: 600px; margin: 20px 0; border: 1px solid #ccc; }
+        #map { width: 100%; height: calc(100vh - 250px); margin: 20px 0; border: 1px solid #ccc; }
         .geojson-help { margin-top:8px; font-size:0.95rem; color:#333 }
+        #layer-info { margin-bottom: 10px; font-size: 1rem; color: #333; }
+        #map-selector { padding: 8px; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -38,6 +40,7 @@
             <option value="etn">Cluster 3: ETN data (European Tracking Network)</option>
         </select>
     </div>
+    <div id="layer-info"></div>
 
     <div id="map"></div>
     <div id="geojson-help" class="geojson-help"></div>
@@ -53,11 +56,34 @@
 
         let currentLayer = null;
 
-        // White to Blue colormap with quantile normalization
-        function getWhiteToBlueColor(normalized) {
-            const r = Math.round(255 * (1 - normalized));
-            const g = Math.round(255 * (1 - normalized));
-            const b = 255;
+        // Matplotlib blues colormap - light blue to dark marine blue
+        function getMatplotlibBluesColor(normalized) {
+            // Sample points from matplotlib blues colormap
+            const colors = [
+                { r: 247, g: 251, b: 255 },  // Very light blue (0%)
+                { r: 222, g: 235, b: 247 },  // Light blue (25%)
+                { r: 158, g: 202, b: 225 },  // Medium blue (50%)
+                { r: 49, g: 130, b: 189 },   // Darker blue (75%)
+                { r: 8, g: 48, b: 107 }      // Deep marine blue (100%)
+            ];
+
+            const position = normalized * (colors.length - 1);
+            const index = Math.floor(position);
+            const nextIndex = Math.ceil(position);
+            const fraction = position - index;
+
+            if (index === nextIndex) {
+                const c = colors[index];
+                return `rgb(${c.r},${c.g},${c.b})`;
+            }
+
+            const c1 = colors[index];
+            const c2 = colors[nextIndex];
+
+            const r = Math.round(c1.r + (c2.r - c1.r) * fraction);
+            const g = Math.round(c1.g + (c2.g - c1.g) * fraction);
+            const b = Math.round(c1.b + (c2.b - c1.b) * fraction);
+
             return `rgb(${r},${g},${b})`;
         }
 
@@ -104,6 +130,7 @@
                 map.removeLayer(currentLayer);
             }
             document.getElementById('geojson-help').innerHTML = '';
+            document.getElementById('layer-info').innerHTML = '';
 
             // Fetch and render
             fetch(config.file)
@@ -116,18 +143,22 @@
                         .map(feature => feature.properties.count || 0)
                         .sort((a, b) => a - b);
 
+                    // Calculate total count
+                    const totalCount = counts.reduce((sum, c) => sum + c, 0);
+                    document.getElementById('layer-info').innerHTML = `<strong>Total Count:</strong> ${totalCount.toLocaleString()}`;
+
                     if (config.type === 'polygon') {
                         currentLayer = L.geoJSON(data, {
                             style: (feature) => {
                                 const count = feature.properties.count || 0;
                                 const normalizedQuantile = quantileNormalize(count, counts);
-                                const color = getWhiteToBlueColor(normalizedQuantile);
+                                const color = getMatplotlibBluesColor(normalizedQuantile);
                                 return {
                                     fillColor: color,
-                                    color: '#333',
-                                    weight: 0.5,
-                                    opacity: 0.7,
-                                    fillOpacity: 0.6
+                                    color: color,
+                                    weight: 0,
+                                    opacity: 1,
+                                    fillOpacity: 0.8
                                 };
                             },
                             onEachFeature: (feature, layer) => {
@@ -140,14 +171,14 @@
                             pointToLayer: (feature, latlng) => {
                                 const count = feature.properties.count || 0;
                                 const normalizedQuantile = quantileNormalize(count, counts);
-                                const color = getWhiteToBlueColor(normalizedQuantile);
+                                const color = getMatplotlibBluesColor(normalizedQuantile);
                                 const marker = L.circleMarker(latlng, {
                                     radius: 6,
                                     fillColor: color,
-                                    color: '#000',
-                                    weight: 1,
-                                    opacity: 0.8,
-                                    fillOpacity: 0.7
+                                    color: color,
+                                    weight: 0,
+                                    opacity: 1,
+                                    fillOpacity: 0.8
                                 });
                                 marker.bindPopup(`<strong>Station:</strong> ${feature.properties.station_name}<br><strong>Count:</strong> ${count}`);
                                 return marker;
