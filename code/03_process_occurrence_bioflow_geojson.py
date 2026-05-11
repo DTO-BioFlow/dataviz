@@ -1,3 +1,13 @@
+"""
+Reads the harvested data from  /data/1.harvest_wp2_observation_data and
+/data/2.harvest_wp3_sensor_observation_data. THe script will group the point
+observations into hexagons and create a density count (simplifies the dataset).
+3 files are generated (stored in /plots):
+- wp2_observations_hexagons.geojson
+- wp3_sensor_observations_hexagons.geojson
+- all_observations_hexagons.geojson
+"""
+
 import geopandas as gpd
 import pandas as pd
 import h3
@@ -121,13 +131,13 @@ if __name__ == "__main__":
     create_hexagon_geojson(
         csv_files=csv_wp3,
         h3_resolution=4,
-        output_file="wp2_sensor_observations_hexagons",
+        output_file="wp3_sensor_observations_hexagons",
         out_dir="../plots"
     )
     print("working on csv call 1...")
     create_hexagon_geojson(
         csv_files=csv_all,
         h3_resolution=4,
-        output_file="wp2_all_observations_hexagons",
+        output_file="all_observations_hexagons",
         out_dir="../plots"
     )

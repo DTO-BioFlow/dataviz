@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        #map { width: 100%; height: 600px; margin: 20px 0; border: 1px solid #ccc; }
+        #map, #map-wp2 { width: 100%; height: 600px; margin: 20px 0; border: 1px solid #ccc; }
         .geojson-help { margin-top:8px; font-size:0.95rem; color:#333 }
     </style>
 </head>
@@ -28,12 +28,22 @@
 </nav>
 <main class="page-content">
     <h2>Maps</h2>
-    <h3>ETN Combined Detections Map</h3>
+
+    <div style="margin-bottom: 15px;">
+        <label for="map-selector" style="font-weight: bold; margin-right: 10px;">Select Data Layer:</label>
+        <select id="map-selector" style="padding: 8px; font-size: 1rem;">
+            <option value="wp2">Cluster 1: Observation data (WP2 call-1)</option>
+            <option value="wp3">Cluster 2: Sensor observation data (WP3)</option>
+            <option value="combined">Cluster 1 + 2</option>
+            <option value="etn">Cluster 3: ETN data (European Tracking Network)</option>
+        </select>
+    </div>
+
     <div id="map"></div>
     <div id="geojson-help" class="geojson-help"></div>
 
     <script>
-        // Initialize the map
+        // Initialize single map
         const map = L.map('map').setView([52.5, 10.0], 4);
 
         // Add OpenStreetMap tile layer
@@ -41,37 +51,18 @@
             attribution: '© OpenStreetMap contributors', maxZoom: 19
         }).addTo(map);
 
-        const geoJsonPath = 'resources/maps/etn_combined_map.geojson';
+        let currentLayer = null;
 
-        // Color interpolation function
-        function getColorFromNormalizedValue(normalized) {
-            // Create a linear gradient from blue (low) -> cyan -> green -> yellow -> red (high)
-            const colors = [
-                { r: 0, g: 0, b: 255 },      // Blue (0%)
-                { r: 0, g: 255, b: 255 },    // Cyan (25%)
-                { r: 0, g: 255, b: 0 },      // Green (50%)
-                { r: 255, g: 255, b: 0 },    // Yellow (75%)
-                { r: 255, g: 0, b: 0 }       // Red (100%)
-            ];
-
-            const position = normalized * (colors.length - 1);
-            const index = Math.floor(position);
-            const nextIndex = Math.ceil(position);
-            const fraction = position - index;
-
-            const color1 = colors[index];
-            const color2 = colors[nextIndex];
-
-            const r = Math.round(color1.r + (color2.r - color1.r) * fraction);
-            const g = Math.round(color1.g + (color2.g - color1.g) * fraction);
-            const b = Math.round(color1.b + (color2.b - color1.b) * fraction);
-
+        // White to Blue colormap with quantile normalization
+        function getWhiteToBlueColor(normalized) {
+            const r = Math.round(255 * (1 - normalized));
+            const g = Math.round(255 * (1 - normalized));
+            const b = 255;
             return `rgb(${r},${g},${b})`;
         }
 
         // Quantile normalization: maps values to their quantile positions (0-1)
         function quantileNormalize(value, sortedValues) {
-            // Find the position of this value in the sorted array using binary search
             let left = 0, right = sortedValues.length - 1;
             while (left < right) {
                 const mid = Math.floor((left + right) / 2);
@@ -81,38 +72,110 @@
                     right = mid;
                 }
             }
-            // Return normalized quantile (0 to 1)
             return left / (sortedValues.length - 1);
         }
 
-        function addGeoJSON(data){
-            // Extract and sort count values for quantile normalization
-            const counts = data.features
-                .map(feature => feature.properties.count || 0)
-                .sort((a, b) => a - b);
+        // Configuration for each map layer
+        const mapLayers = {
+            wp2: {
+                file: 'resources/maps/wp2_observations_hexagons.geojson',
+                type: 'polygon'
+            },
+            wp3: {
+                file: 'resources/maps/wp3_sensor_observations_hexagons.geojson',
+                type: 'polygon'
+            },
+            combined: {
+                file: 'resources/maps/all_observations_hexagons.geojson',
+                type: 'polygon'
+            },
+            etn: {
+                file: 'resources/maps/etn_combined_map.geojson',
+                type: 'point'
+            }
+        };
 
-            L.geoJSON(data, {
-                pointToLayer: (feature, latlng) => {
-                    const count = feature.properties.count || 0;
-                    // Map count to its quantile position (0-1)
-                    const normalizedQuantile = quantileNormalize(count, counts);
-                    const color = getColorFromNormalizedValue(normalizedQuantile);
-                    const marker = L.circleMarker(latlng, {
-                        radius: 6,  // Fixed uniform radius
-                        fillColor: color, color: '#000', weight: 1, opacity: 0.8, fillOpacity: 0.7
-                    });
-                    marker.bindPopup(`<strong>Station:</strong> ${feature.properties.station_name}<br><strong>Count:</strong> ${count}`);
-                    return marker;
-                }
-            }).addTo(map);
-            try{ const bounds = L.geoJSON(data).getBounds(); if(bounds && bounds.isValid()) map.fitBounds(bounds.pad(0.1)); }catch(e){console.warn('Could not fit bounds:', e)}
+        // Load and display GeoJSON
+        function loadMapLayer(layerId) {
+            const config = mapLayers[layerId];
+
+            // Clear existing layer
+            if (currentLayer) {
+                map.removeLayer(currentLayer);
+            }
+            document.getElementById('geojson-help').innerHTML = '';
+
+            // Fetch and render
+            fetch(config.file)
+                .then(r => {
+                    if(!r.ok) throw new Error('HTTP '+r.status);
+                    return r.json();
+                })
+                .then(data => {
+                    const counts = data.features
+                        .map(feature => feature.properties.count || 0)
+                        .sort((a, b) => a - b);
+
+                    if (config.type === 'polygon') {
+                        currentLayer = L.geoJSON(data, {
+                            style: (feature) => {
+                                const count = feature.properties.count || 0;
+                                const normalizedQuantile = quantileNormalize(count, counts);
+                                const color = getWhiteToBlueColor(normalizedQuantile);
+                                return {
+                                    fillColor: color,
+                                    color: '#333',
+                                    weight: 0.5,
+                                    opacity: 0.7,
+                                    fillOpacity: 0.6
+                                };
+                            },
+                            onEachFeature: (feature, layer) => {
+                                const count = feature.properties.count || 0;
+                                layer.bindPopup(`<strong>Count:</strong> ${count}`);
+                            }
+                        });
+                    } else if (config.type === 'point') {
+                        currentLayer = L.geoJSON(data, {
+                            pointToLayer: (feature, latlng) => {
+                                const count = feature.properties.count || 0;
+                                const normalizedQuantile = quantileNormalize(count, counts);
+                                const color = getWhiteToBlueColor(normalizedQuantile);
+                                const marker = L.circleMarker(latlng, {
+                                    radius: 6,
+                                    fillColor: color,
+                                    color: '#000',
+                                    weight: 1,
+                                    opacity: 0.8,
+                                    fillOpacity: 0.7
+                                });
+                                marker.bindPopup(`<strong>Station:</strong> ${feature.properties.station_name}<br><strong>Count:</strong> ${count}`);
+                                return marker;
+                            }
+                        });
+                    }
+
+                    currentLayer.addTo(map);
+
+                    // Fit bounds
+                    try {
+                        const bounds = currentLayer.getBounds();
+                        if(bounds && bounds.isValid()) map.fitBounds(bounds.pad(0.1));
+                    } catch(e) { console.warn('Could not fit bounds:', e); }
+                })
+                .catch(error => {
+                    console.error('Error loading GeoJSON:', error);
+                    document.getElementById('geojson-help').innerHTML = `<div style="margin:6px 0; padding:6px; background:#f8d7da; border:1px solid #f5c6cb; color:#721c24">Error loading map data. Please ensure the file is served over HTTP.</div>`;
+                });
         }
 
-        // Load GeoJSON data
-        fetch(geoJsonPath).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(addGeoJSON).catch(error=>{
-            console.error('Error loading GeoJSON:', error);
-            document.getElementById('geojson-help').innerHTML = `<div style="margin:6px 0; padding:6px; background:#f8d7da; border:1px solid #f5c6cb; color:#721c24">Error loading map data. Please ensure the file is served over HTTP.</div>`;
+        // Handle dropdown selection
+        document.getElementById('map-selector').addEventListener('change', (e) => {
+            loadMapLayer(e.target.value);
         });
+
+        // Load initial layer (WP2)
+        loadMapLayer('wp2');
     </script>
 </main>
 

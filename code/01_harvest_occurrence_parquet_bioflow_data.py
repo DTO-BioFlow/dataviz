@@ -17,7 +17,6 @@ from datetime import datetime, timezone
 import pandas as pd
 from pathlib import Path
 import pyarrow.compute as pc
-import shutil
 
 
 def read_dataset_ids(file_path: str):
@@ -153,7 +152,7 @@ def extract_sensor_data(dataset, dataset_id: int, output_dir: Path):
     df["observationdate"] = pd.to_datetime(df["observationdate"], errors="coerce")
 
     # Filter for recent data if needed
-    if dataset_id in [3117, 4688, 5531]:
+    if dataset_id in [3117, 4688, 4687]:
         cutoff = datetime(2023, 9, 1, tzinfo=timezone.utc)
         df = df[df["observationdate"] >= cutoff]
         if df.empty:
@@ -239,8 +238,6 @@ if __name__ == "__main__":
     print("working on call1 datasets")
     call1_source = "../sources/dasid_wp2_observations_call1.txt"
     call1_dasids = read_dataset_ids(call1_source)
-    mirror_text_file_to_docs(call1_source)
-    write_ids_js_to_docs(call1_source, call1_dasids, "WP2_DASIDS")
     output_dir = Path("../data/1.harvest_wp2_observation_data")
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -254,23 +251,9 @@ if __name__ == "__main__":
     print("working on sensor datasets")
     sensor_source = "../sources/dasid_wp3_sensor_observations.txt"
     sensor_dasids = read_dataset_ids(sensor_source)
-    mirror_text_file_to_docs(sensor_source)
-    write_ids_js_to_docs(sensor_source, sensor_dasids, "WP3_SENSOR_DASIDS")
     output_dir = Path("../data/2.harvest_wp3_sensor_observation_data")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for i, did in enumerate(sensor_dasids):
         print(f"dataset {i} out of {len(sensor_dasids)}")
         extract_sensor_data(dataset, did, output_dir)
-
-    # # -------------------------------------------------------------------------
-    # # sensor datasets
-    # print("-"*50)
-    # print("working on tracking datasets")
-    # tracking_dasids = read_dataset_ids("../sources/dasid_tracking_data.txt")
-    # output_dir = Path("../data/output_tracking_data")
-    # output_dir.mkdir(parents=True, exist_ok=True)
-    #
-    # for i, did in enumerate(tracking_dasids):
-    #     print(f"dataset {i} out of {len(tracking_dasids)}")
-    #     extract_tracking_data(dataset, did, output_dir)

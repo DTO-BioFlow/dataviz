@@ -1,3 +1,10 @@
+"""
+Harvest the ETN data to data/03.harvest_ETN. Each parquet becomes a csv.
+Each csv is named '{stac item ID}_detections.csv' and contains the station
+name and count of observations.
+A seconds csv '{stac item ID}_taxonimic_count.csv' contains the scientific name
+and count.
+"""
 import pystac_client
 from pathlib import Path
 import urllib.request
