@@ -4,6 +4,230 @@
     <meta charset="UTF-8">
     <title>DTO-Bioflow dataset visualisation</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .slideshow-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .slideshow-content {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            border-radius: 6px;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .slideshow-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .slideshow-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .slideshow-button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .slideshow-button:hover {
+            background-color: #0056b3;
+        }
+
+        .slideshow-button:active {
+            transform: scale(0.98);
+        }
+
+        .slideshow-button.play-pause {
+            background-color: #28a745;
+        }
+
+        .slideshow-button.play-pause:hover {
+            background-color: #218838;
+        }
+
+        .slideshow-counter {
+            font-weight: bold;
+            color: #333;
+            min-width: 60px;
+            text-align: center;
+        }
+    </style>
+    <script>
+        // Slideshow data
+        const slideshowData = {
+            wp2: [
+                '../plots/wp2_call1_observation_maps/dasid_8784.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8785.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8787.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8789.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8791.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8792.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8801.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8795.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8796.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8797.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8802.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8803.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8798.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8799.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8800.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8804.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8805.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8806.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8816.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8814.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8807.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8808.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8809.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8810.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8811.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8812.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8813.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8817.webp',
+                '../plots/wp2_call1_observation_maps/dasid_8818.webp',
+                '../plots/wp2_call1_observation_maps/dasid_4687.webp',
+                '../plots/wp2_call1_observation_maps/dasid_4688.webp'
+            ],
+            wp3: [
+                '../plots/wp3_sensor_observation_maps/dasid_3117.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_4687.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_4688.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_5531.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_5846.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_5850.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_5867.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_5868.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_5871.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_5872.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_5873.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_6581.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7918.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7919.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7921.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7932.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7937.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7938.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7940.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7941.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7942.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7943.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_7944.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_8152.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_8153.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_8357.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_8612.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_8617.webp',
+                '../plots/wp3_sensor_observation_maps/dasid_8744.webp'
+            ]
+        };
+
+        // Slideshow class
+        class Slideshow {
+            constructor(name, images) {
+                this.name = name;
+                this.images = images;
+                this.currentIndex = 0;
+                this.isPlaying = true;
+                this.intervalId = null;
+                this.imageElement = document.getElementById(name + '-image');
+                this.counterElement = document.getElementById(name + '-counter');
+                this.playPauseButton = document.getElementById(name + '-play-pause');
+
+                this.init();
+            }
+
+            init() {
+                this.showImage(0);
+                this.startAutoPlay();
+            }
+
+            showImage(index) {
+                if (this.images.length === 0) return;
+
+                this.currentIndex = (index + this.images.length) % this.images.length;
+                this.imageElement.src = this.images[this.currentIndex];
+                this.updateCounter();
+            }
+
+            updateCounter() {
+                this.counterElement.textContent = (this.currentIndex + 1) + ' / ' + this.images.length;
+            }
+
+            nextSlide() {
+                this.showImage(this.currentIndex + 1);
+                this.resetAutoPlay();
+            }
+
+            previousSlide() {
+                this.showImage(this.currentIndex - 1);
+                this.resetAutoPlay();
+            }
+
+            startAutoPlay() {
+                if (this.isPlaying) {
+                    this.intervalId = setInterval(() => this.nextSlide(), 3000);
+                }
+            }
+
+            stopAutoPlay() {
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
+            }
+
+            resetAutoPlay() {
+                this.stopAutoPlay();
+                if (this.isPlaying) {
+                    this.startAutoPlay();
+                }
+            }
+
+            togglePlayPause() {
+                this.isPlaying = !this.isPlaying;
+
+                if (this.isPlaying) {
+                    this.playPauseButton.textContent = '⏸ Pause';
+                    this.startAutoPlay();
+                } else {
+                    this.playPauseButton.textContent = '▶ Play';
+                    this.stopAutoPlay();
+                }
+            }
+        }
+
+        // Initialize slideshows when DOM is ready
+        const slideshows = {};
+        document.addEventListener('DOMContentLoaded', function() {
+            slideshows.wp2 = new Slideshow('wp2', slideshowData.wp2);
+            slideshows.wp3 = new Slideshow('wp3', slideshowData.wp3);
+        });
+    </script>
 </head>
 
 <body>
@@ -54,6 +278,32 @@
                 </ul>
             </li>
         </ul>
+    </div>
+
+    <h2>Cluster 1: WP2 Call-1 Observation Data Maps</h2>
+    <div class="slideshow-container wp2-slideshow">
+        <div class="slideshow-content">
+            <img class="slideshow-image" id="wp2-image" src="" alt="WP2 Observation Map">
+        </div>
+        <div class="slideshow-controls">
+            <button class="slideshow-button" onclick="slideshows.wp2.previousSlide()">❮ Previous</button>
+            <button class="slideshow-button play-pause" id="wp2-play-pause" onclick="slideshows.wp2.togglePlayPause()">⏸ Pause</button>
+            <button class="slideshow-button" onclick="slideshows.wp2.nextSlide()">Next ❯</button>
+            <span class="slideshow-counter" id="wp2-counter">1 / 1</span>
+        </div>
+    </div>
+
+    <h2>Cluster 2: WP3 Sensor Observation Data Maps</h2>
+    <div class="slideshow-container wp3-slideshow">
+        <div class="slideshow-content">
+            <img class="slideshow-image" id="wp3-image" src="" alt="WP3 Sensor Observation Map">
+        </div>
+        <div class="slideshow-controls">
+            <button class="slideshow-button" onclick="slideshows.wp3.previousSlide()">❮ Previous</button>
+            <button class="slideshow-button play-pause" id="wp3-play-pause" onclick="slideshows.wp3.togglePlayPause()">⏸ Pause</button>
+            <button class="slideshow-button" onclick="slideshows.wp3.nextSlide()">Next ❯</button>
+            <span class="slideshow-counter" id="wp3-counter">1 / 1</span>
+        </div>
     </div>
 
 </main>

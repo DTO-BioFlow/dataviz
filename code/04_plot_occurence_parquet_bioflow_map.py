@@ -8,6 +8,8 @@ Plot unique observation/sensor locations:
 - plot combined map for Call1+WP3 (csv_all)
 
 Each combined map includes a text box listing DASIDs.
+
+Makes also gif for each cluster.
 """
 from pathlib import Path
 import ast
@@ -26,6 +28,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from scipy.cluster import hierarchy
+from PIL import Image
 
 # -------------------------
 # Configuration
@@ -274,6 +277,65 @@ def plot_each_csv_individual(csv_files, out_base: Path, filename_prefix: str = "
                     format=format, dpi=dpi, quality=quality)
 
 
+def make_gif(dir, output, name):
+    """
+    Create a GIF from all WebP files in a directory.
+
+    Args:
+        dir: Path to directory containing WebP files
+        output: Output directory path for the GIF
+        name: Output filename (without extension; .gif will be added)
+    """
+    # Convert to Path objects if strings are passed
+    if isinstance(dir, str):
+        dir = Path(dir)
+    if isinstance(output, str):
+        output = Path(output)
+
+    # Create output directory if it doesn't exist
+    output.mkdir(parents=True, exist_ok=True)
+
+    # Get all WebP files sorted by name
+    webp_files = sorted(dir.glob("*.webp"))
+
+    if not webp_files:
+        print(f"⚠️ No WebP files found in {dir}")
+        return
+
+    # Open all WebP images
+    images = []
+    for webp_path in webp_files:
+        try:
+            img = Image.open(webp_path)
+            images.append(img)
+        except Exception as e:
+            print(f"⚠️ Could not load {webp_path}: {e}")
+            continue
+
+    if not images:
+        print(f"⚠️ No valid images could be loaded from {dir}")
+        return
+
+    # Create output path
+    output_path = output / f"{name}.gif"
+
+    # Save as GIF (convert to RGB mode if needed)
+    try:
+        # Convert all images to RGB mode for compatibility
+        images_rgb = [img.convert("RGB") if img.mode != "RGB" else img for img in images]
+
+        # Save as animated GIF with 500ms duration per frame
+        images_rgb[0].save(
+            output_path,
+            save_all=True,
+            append_images=images_rgb[1:],
+            duration=2000,
+            loop=0  # Loop indefinitely
+        )
+        print(f"✔ Created GIF: {output_path} ({len(images_rgb)} frames)")
+    except Exception as e:
+        print(f"⚠️ Could not create GIF: {e}")
+
 
 if __name__ == "__main__":
     # input directories (adjust as needed)
@@ -307,6 +369,9 @@ if __name__ == "__main__":
 
     # 1) Plot each CSV individually (loop over all CSVs)
     print(">> Plotting each CSV individually...")
-    plot_each_csv_individual(csv_call1, Path("../plots/wp2_call1_observation_maps"), format='webp')
-    plot_each_csv_individual(csv_wp3, Path("../plots/wp3_sensor_observation_maps"), format='webp')
+    # plot_each_csv_individual(csv_call1, Path("../plots/wp2_call1_observation_maps"), format='webp')
+    make_gif(Path("../plots/wp2_call1_observation_maps"), Path("../plots"), "wp2_call1_observation_maps_gif")
+
+    # plot_each_csv_individual(csv_wp3, Path("../plots/wp3_sensor_observation_maps"), format='webp')
+    make_gif(Path("../plots/wp3_sensor_observation_maps"), Path("../plots"), "wp3_sensor_observation_maps_gif")
 
