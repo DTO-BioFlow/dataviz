@@ -18,7 +18,7 @@
         .slideshow-content {
             position: relative;
             width: 100%;
-            aspect-ratio: 16 / 9;
+            aspect-ratio: 0.95 / 1;
             overflow: hidden;
             border-radius: 6px;
             background-color: #e0e0e0;
@@ -143,6 +143,57 @@
                 'resources/maps/wp3_sensor_observation_maps/dasid_8612.webp',
                 'resources/maps/wp3_sensor_observation_maps/dasid_8617.webp',
                 'resources/maps/wp3_sensor_observation_maps/dasid_8744.webp'
+            ],
+            etn: [
+                'resources/maps/etn_maps/2010_phd_reubens_detections.webp',
+                'resources/maps/etn_maps/2010_phd_reubens_sync_detections.webp',
+                'resources/maps/etn_maps/2011_Loire_detections.webp',
+                'resources/maps/etn_maps/2011_rivierprik_detections.webp',
+                'resources/maps/etn_maps/2011_Warnow_detections.webp',
+                'resources/maps/etn_maps/2012_leopoldkanaal_detections.webp',
+                'resources/maps/etn_maps/2013_albertkanaal_detections.webp',
+                'resources/maps/etn_maps/2014_demer_detections.webp',
+                'resources/maps/etn_maps/2014_Nene_detections.webp',
+                'resources/maps/etn_maps/2015_Albertkanaal_VPS_Ham_detections.webp',
+                'resources/maps/etn_maps/2015_dijle_detections.webp',
+                'resources/maps/etn_maps/2015_homarus_detections.webp',
+                'resources/maps/etn_maps/2015_phd_verhelst_cod_detections.webp',
+                'resources/maps/etn_maps/2015_phd_verhelst_eel_detections.webp',
+                'resources/maps/etn_maps/2019_Grotenete_detections.webp',
+                'resources/maps/etn_maps/ARAISOLA02_detections.webp',
+                'resources/maps/etn_maps/ARAISOLA03_detections.webp',
+                'resources/maps/etn_maps/Artevigo_detections.webp',
+                'resources/maps/etn_maps/BALANCE_detections.webp',
+                'resources/maps/etn_maps/BTN-IMEDEA_detections.webp',
+                'resources/maps/etn_maps/Carp_Markermeer_detections.webp',
+                'resources/maps/etn_maps/codnoise_detections.webp',
+                'resources/maps/etn_maps/COREMAR_detections.webp',
+                'resources/maps/etn_maps/CORYTRACK_detections.webp',
+                'resources/maps/etn_maps/DAbecasis_PhD_detections.webp',
+                'resources/maps/etn_maps/DAK_detections.webp',
+                'resources/maps/etn_maps/driederfzijlen_detections.webp',
+                'resources/maps/etn_maps/Duurswold_detections.webp',
+                'resources/maps/etn_maps/ESGL_detections.webp',
+                'resources/maps/etn_maps/Gamerwolde_detections.webp',
+                'resources/maps/etn_maps/hunze_eel_detections.webp',
+                'resources/maps/etn_maps/Limfjord_detections.webp',
+                'resources/maps/etn_maps/Noordzeekanaal_detections.webp',
+                'resources/maps/etn_maps/OP-Test_detections.webp',
+                'resources/maps/etn_maps/OTN-Hemnfjorden_detections.webp',
+                'resources/maps/etn_maps/OTN-Tosenfjorden_detections.webp',
+                'resources/maps/etn_maps/PhD_Barbara_Koeck_detections.webp',
+                'resources/maps/etn_maps/PhD_Goossens_detections.webp',
+                'resources/maps/etn_maps/Porbeagles_Europe_detections.webp',
+                'resources/maps/etn_maps/PTN-Silver-eel-Mondego_detections.webp',
+                'resources/maps/etn_maps/RAJIBAL-COFIB_detections.webp',
+                'resources/maps/etn_maps/RATJADA_detections.webp',
+                'resources/maps/etn_maps/Reelease_detections.webp',
+                'resources/maps/etn_maps/Rijke_Noordzee_detections.webp',
+                'resources/maps/etn_maps/SARTELTG_detections.webp',
+                'resources/maps/etn_maps/SARTELZINGARO_detections.webp',
+                'resources/maps/etn_maps/SEMP_detections.webp',
+                'resources/maps/etn_maps/SmartBay_animals_detections.webp',
+                'resources/maps/etn_maps/ZRM_animals_detections.webp'
             ]
         };
 
@@ -226,6 +277,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             slideshows.wp2 = new Slideshow('wp2', slideshowData.wp2);
             slideshows.wp3 = new Slideshow('wp3', slideshowData.wp3);
+            slideshows.etn = new Slideshow('etn', slideshowData.etn);
         });
     </script>
 </head>
@@ -280,7 +332,9 @@
         </ul>
     </div>
 
-    <h2>Cluster 1: WP2 Call-1 Observation Data Maps</h2>
+    <h2>Data previews</h2>
+    <div>All individual datasets and previews are available in <a href="bioflow_datasets.html">DTO-Bioflow datasets</a></div>
+    <h3>Cluster 1: WP2 Call-1 Observation Data Maps</h3>
     <div class="slideshow-container wp2-slideshow">
         <div class="slideshow-content">
             <img class="slideshow-image" id="wp2-image" src="" alt="WP2 Observation Map">
@@ -293,7 +347,7 @@
         </div>
     </div>
 
-    <h2>Cluster 2: WP3 Sensor Observation Data Maps</h2>
+    <h3>Cluster 2: WP3 Sensor Observation Data Maps</h3>
     <div class="slideshow-container wp3-slideshow">
         <div class="slideshow-content">
             <img class="slideshow-image" id="wp3-image" src="" alt="WP3 Sensor Observation Map">
@@ -303,6 +357,19 @@
             <button class="slideshow-button play-pause" id="wp3-play-pause" onclick="slideshows.wp3.togglePlayPause()">⏸ Pause</button>
             <button class="slideshow-button" onclick="slideshows.wp3.nextSlide()">Next ❯</button>
             <span class="slideshow-counter" id="wp3-counter">1 / 1</span>
+        </div>
+    </div>
+
+    <h3>Cluster 3: ETN data</h3>
+    <div class="slideshow-container etn-slideshow">
+        <div class="slideshow-content">
+            <img class="slideshow-image" id="etn-image" src="" alt="ETN Data Map">
+        </div>
+        <div class="slideshow-controls">
+            <button class="slideshow-button" onclick="slideshows.etn.previousSlide()">❮ Previous</button>
+            <button class="slideshow-button play-pause" id="etn-play-pause" onclick="slideshows.etn.togglePlayPause()">⏸ Pause</button>
+            <button class="slideshow-button" onclick="slideshows.etn.nextSlide()">Next ❯</button>
+            <span class="slideshow-counter" id="etn-counter">1 / 1</span>
         </div>
     </div>
 

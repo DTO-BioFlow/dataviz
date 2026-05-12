@@ -12,6 +12,7 @@ import json
 import warnings
 import contextily as ctx
 from pyproj import Transformer
+from PIL import Image
 
 warnings.filterwarnings('ignore')
 warnings.filterwarnings('ignore')
@@ -52,6 +53,27 @@ def get_taxonomic_data(dataset_name):
     return None
 
 
+def build_global_count_scale(datasets):
+    """Build one shared count-to-normalized-value mapping across all datasets."""
+    all_counts = set()
+
+    for dataset in datasets:
+        try:
+            df = pd.read_csv(dataset, usecols=["count"])
+            all_counts.update(df["count"].dropna().unique().tolist())
+        except Exception as e:
+            print(f"Warning: Could not read counts from {dataset.stem}: {e}")
+
+    unique_counts = sorted(all_counts)
+    if not unique_counts:
+        return None
+
+    if len(unique_counts) == 1:
+        return {unique_counts[0]: 0.5}
+
+    return {val: i / (len(unique_counts) - 1) for i, val in enumerate(unique_counts)}
+
+
 def add_inset_world(ax, x_left, x_right, y_bot, y_top, side, world_gdf):
     """Add a small inset world map showing the region rectangle."""
     if world_gdf is None or len(world_gdf) == 0 or world_gdf.geometry is None or world_gdf.geometry.empty:
@@ -80,11 +102,18 @@ def add_inset_world(ax, x_left, x_right, y_bot, y_top, side, world_gdf):
     inset.set_yticks([])
 
 
-def plot_etn_individuel(dataset, world_gdf=None):
-    """Plot a PNG map for an individual dataset.
+def plot_etn_individuel(dataset, store: str, format: str, world_gdf=None, count_to_norm=None):
+    """Plot a map for an individual dataset.
 
     Creates a lat/lon plot with color gradient based on count, includes unique
     deployment station names in a text box, and adds a world basemap with inset.
+    
+    Args:
+        dataset: Path to the dataset CSV file
+        world_gdf: GeoDataFrame of world map (optional)
+        store: Path where to store the plots (default: "../plots/etn_maps")
+        format: Output format, either "png" or "webp" (default: "png")
+        count_to_norm: Optional shared mapping from count values to [0, 1]
     """
     df = pd.read_csv(dataset)
 
@@ -163,20 +192,13 @@ def plot_etn_individuel(dataset, world_gdf=None):
         print(f"Warning: Could not add basemap for {dataset.stem}: {e}")
         ax.set_facecolor('lightblue')
 
-    # Quantile-based normalization: evenly space unique values across colormap
-    unique_counts = sorted(df['count'].unique())
-    n_unique = len(unique_counts)
-
-    if n_unique == 1:
-        # Single value: map to middle of colormap (0.5)
-        count_to_norm = {unique_counts[0]: 0.5}
-    else:
-        # Multiple values: evenly space across [0, 1]
-        # e.g., 5 unique values map to 0.0, 0.25, 0.5, 0.75, 1.0
-        count_to_norm = {
-            val: i / (n_unique - 1)
-            for i, val in enumerate(unique_counts)
-        }
+    # Use a shared scale when provided so every GIF frame uses the same colors.
+    if count_to_norm is None:
+        unique_counts = sorted(df['count'].unique())
+        if len(unique_counts) == 1:
+            count_to_norm = {unique_counts[0]: 0.5}
+        else:
+            count_to_norm = {val: i / (len(unique_counts) - 1) for i, val in enumerate(unique_counts)}
 
     # Create normalized count column for plotting
     df['normalized_count'] = df['count'].map(count_to_norm)
@@ -200,7 +222,6 @@ def plot_etn_individuel(dataset, world_gdf=None):
     cbar = plt.colorbar(scatter, cax=cax, orientation='horizontal', aspect=7)
     cbar.set_ticks([])
     cbar.outline.set_linewidth(0.8)
-    cbar.set_label('low - high', fontsize=8, labelpad=2)
     cbar.ax.text(0.00, 1.12, 'low', transform=cbar.ax.transAxes,
                  ha='left', va='bottom', fontsize=8)
     cbar.ax.text(1.00, 1.12, 'high', transform=cbar.ax.transAxes,
@@ -247,17 +268,146 @@ def plot_etn_individuel(dataset, world_gdf=None):
             pass
 
     # Create output directory if it doesn't exist
-    output_dir = Path("../plots/etn_maps")
+    output_dir = Path(store)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save figure
-    output_path = output_dir / f"{dataset.stem}.png"
+    # Validate format parameter
+    if format.lower() not in ["png", "webp"]:
+        raise ValueError(f"Invalid format '{format}'. Must be 'png' or 'webp'")
+
+    # Save figure in the specified format
+    output_path = output_dir / f"{dataset.stem}.{format.lower()}"
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
 
     print(f"✔ Saved map: {output_path}")
 
+
+def make_gif(dir, output, name, frame_format="webp", output_format="gif"):
+    """
+    Create an animation from PNG or WebP files in a directory.
+
+    Args:
+        dir: Path to directory containing frame images
+        output: Output directory path for the animation
+        name: Output filename (without extension; extension added based on output_format)
+        frame_format: Input image format, either "webp" or "png"
+        output_format: Output animation format: "gif" (default) or "apng".
+            - "gif": produce an animated GIF (colors will be palettized)
+            - "apng": produce an animated PNG (preserves truecolor/alpha)
+    """
+    # Convert to Path objects if strings are passed
+    if isinstance(dir, str):
+        dir = Path(dir)
+    if isinstance(output, str):
+        output = Path(output)
+
+    # Create output directory if it doesn't exist
+    output.mkdir(parents=True, exist_ok=True)
+
+    frame_format = frame_format.lower().lstrip(".")
+    output_format = output_format.lower().lstrip(".")
+
+    if frame_format not in {"webp", "png"}:
+        raise ValueError(f"Invalid frame_format '{frame_format}'. Must be 'webp' or 'png'")
+    if output_format not in {"gif", "apng"}:
+        raise ValueError(f"Invalid output_format '{output_format}'. Must be 'gif' or 'apng'")
+
+    # Get all frame files sorted by name for the selected input format
+    frame_files = sorted(dir.glob(f"*.{frame_format}"))
+
+    if not frame_files:
+        print(f"⚠️ No .{frame_format} files found in {dir}")
+        return
+
+    # Open all frames
+    images = []
+    for frame_path in frame_files:
+        try:
+            img = Image.open(frame_path)
+            images.append(img)
+        except Exception as e:
+            print(f"⚠️ Could not load {frame_path}: {e}")
+            continue
+
+    if not images:
+        print(f"⚠️ No valid images could be loaded from {dir}")
+        return
+
+    # Create output path and write animation.
+    try:
+        if output_format == "apng":
+            if frame_format != "png":
+                raise ValueError("APNG output requires PNG input frames")
+            # Write an animated PNG (APNG) to preserve original PNG colors and alpha.
+            output_path = output / f"{name}.png"
+            images[0].save(
+                output_path,
+                save_all=True,
+                append_images=images[1:],
+                duration=2000,
+                loop=0,
+                format='PNG'
+            )
+            print(f"✔ Created APNG: {output_path} ({len(images)} frames)")
+        else:
+            # Produce a GIF using a single shared adaptive palette to avoid
+            # per-frame palette differences which cause color shifts/banding.
+            output_path = output / f"{name}.gif"
+
+            # Convert all frames to RGB
+            frames_rgb = [img.convert("RGB") if img.mode != "RGB" else img.copy() for img in images]
+
+            # Build small thumbnails to derive a representative global palette
+            thumbs = []
+            thumb_w, thumb_h = 160, 120
+            for fr in frames_rgb:
+                t = fr.copy()
+                t.thumbnail((thumb_w, thumb_h), Image.LANCZOS)
+                thumbs.append(t)
+
+            # Composite thumbnails side-by-side to collect colors from all frames
+            total_w = sum(t.width for t in thumbs)
+            max_h = max(t.height for t in thumbs)
+            palette_canvas = Image.new("RGB", (max(1, total_w), max_h), (0, 0, 0))
+            x = 0
+            for t in thumbs:
+                palette_canvas.paste(t, (x, 0))
+                x += t.width
+
+            # Create a single adaptive palette image (P-mode) from the composite
+            try:
+                palette_image = palette_canvas.convert("P", palette=Image.ADAPTIVE, colors=256)
+            except Exception:
+                # Fallback if ADAPTIVE not available
+                palette_image = palette_canvas.convert("P", colors=256)
+
+            # Quantize each full-size frame using the same palette (use dithering to reduce banding)
+            paletted_frames = []
+            for fr in frames_rgb:
+                try:
+                    q = fr.quantize(palette=palette_image, dither=Image.FLOYDSTEINBERG)
+                except Exception:
+                    q = fr.quantize(palette=palette_image)
+                paletted_frames.append(q)
+
+            # Save paletted frames as an animated GIF
+            try:
+                paletted_frames[0].save(
+                    output_path,
+                    save_all=True,
+                    append_images=paletted_frames[1:],
+                    duration=2000,
+                    loop=0,
+                    disposal=2,
+                    optimize=False
+                )
+                print(f"✔ Created GIF with shared palette: {output_path} ({len(paletted_frames)} frames)")
+            except Exception as e:
+                print(f"⚠️ Could not create paletted GIF: {e}")
+    except Exception as e:
+        print(f"⚠️ Could not create animation: {e}")
 
 if __name__ == '__main__':
     # Load world map once in Web Mercator for inset
@@ -279,9 +429,12 @@ if __name__ == '__main__':
     datasets = get_datasets()
     print(f"Found {len(datasets)} dataset(s)")
 
-    for dataset in datasets:
-        try:
-            plot_etn_individuel(dataset, world_gdf=PLOT_WORLD_GDF)
-        except Exception as e:
-            print(f"⚠ Error plotting {dataset.stem}: {e}")
+    shared_count_to_norm = build_global_count_scale(datasets)
+    if shared_count_to_norm is None:
+        print("⚠️ Could not build a shared count scale; falling back to per-file color normalization.")
+
+
+
+    # make gif (produce a GIF from PNG frames)
+    make_gif(dir="../plots/etn_maps_png", output="../plots", name="etn_maps_animation", frame_format="png", output_format="gif")
 
