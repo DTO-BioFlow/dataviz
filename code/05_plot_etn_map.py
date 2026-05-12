@@ -1,3 +1,8 @@
+"""
+Plots every ETN dataset stored as csv in /data/harvest_etn on an individual map
+both as png and webp. The images are stored in /plots/etn_maps and
+plots/etn_maps. Next makes a gif from the pngs.
+"""
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -433,7 +438,26 @@ if __name__ == '__main__':
     if shared_count_to_norm is None:
         print("⚠️ Could not build a shared count scale; falling back to per-file color normalization.")
 
-
+    for dataset in datasets:
+        try:
+            plot_etn_individuel(
+                dataset,
+                store="../plots/etn_maps",
+                format='webp',
+                world_gdf=PLOT_WORLD_GDF,
+                count_to_norm=shared_count_to_norm,
+            )
+            plot_etn_individuel(
+                dataset,
+                store="../plots/etn_maps_png",
+                format='png',
+                world_gdf=PLOT_WORLD_GDF,
+                count_to_norm=shared_count_to_norm,
+            )
+        except Exception as e:
+            print(f"⚠ Error plotting {dataset.stem}: {e}")
+    datasets = get_datasets()
+    print(f"Found {len(datasets)} dataset(s)")
 
     # make gif (produce a GIF from PNG frames)
     make_gif(dir="../plots/etn_maps_png", output="../plots", name="etn_maps_animation", frame_format="png", output_format="gif")

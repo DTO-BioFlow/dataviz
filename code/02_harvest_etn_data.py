@@ -4,6 +4,7 @@ Each csv is named '{stac item ID}_detections.csv' and contains the station
 name and count of observations.
 A seconds csv '{stac item ID}_taxonimic_count.csv' contains the scientific name
 and count.
+A third csv '{stac item ID}_temporal_count.csv contains the day and count.
 """
 import pystac_client
 from pathlib import Path
@@ -218,6 +219,53 @@ def assemble_dois(out_base: str = "../data"):
     else:
         print("No metadata collected.")
 
+def get_temporal_data(item_id: str, url: str, out_base: str = "../data/3.harvest_ETN"):
+    """
+    function read parquet file and exports the count of observations per day.
+    It first assembles all unique dates (not hours and minutes, only on day level)
+     and then counts the number of observations for each date.
+     The result is saved as a CSV file with two columns: 'date' and 'count'.
+     The 'date' column contains the unique dates, and the 'count' column
+     contains the corresponding number of observations for each date.
+     The csv is save in /data/harvest_ETN with the name {item_id}_temporal_count.csv
+    """
+    if duckdb is None:
+        raise RuntimeError("duckdb is not installed in this environment.")
+
+    print(f"Processing temporal data (duckdb): {item_id} -> {url}")
+    con = duckdb.connect(database=":memory:")
+    try:
+        con.execute("LOAD httpfs;")
+    except Exception:
+        # If the extension is not available, DuckDB may still read some URLs depending on build.
+        pass
+
+    # Escape single quotes in URL for SQL string literal
+    safe_url = url.replace("'", "''")
+
+
+    # Find datetime column
+    datetime_col = 'datetime'
+
+    sql = (
+        f"SELECT CAST({datetime_col} AS DATE) AS date, COUNT(*) AS count "
+        f"FROM read_parquet('{safe_url}') "
+        f"GROUP BY CAST({datetime_col} AS DATE) "
+        "ORDER BY date"
+    )
+
+    try:
+        df = con.execute(sql).df()
+    except Exception as e:
+        raise RuntimeError(f"DuckDB query failed for {url}: {e}")
+
+    out_dir = Path(out_base)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / f"{item_id}_temporal_count.csv"
+    df.to_csv(out_file, index=False)
+    print(f"  Saved temporal counts: {out_file}")
+
+
 
 if __name__ == "__main__":
     assemble_dois()
@@ -229,7 +277,8 @@ if __name__ == "__main__":
             continue
 
         try:
-            summarize_parquet_to_csv(item_id, url)
-            count_taxonomic_occurrences(item_id, url)  # New line to call the taxonomic count function
+            # summarize_parquet_to_csv(item_id, url)
+            # count_taxonomic_occurrences(item_id, url)
+            get_temporal_data(item_id, url)
         except Exception as e:
             print(f"Error processing {item_id} -> {url}: {e}")

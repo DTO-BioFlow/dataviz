@@ -1,141 +1,79 @@
 from pathlib import Path
+import json
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 
 
-def read_csv_files(csv_files):
-    """Read and combine CSV files into a single DataFrame, sorted by
-    observationdate."""
-    all_data = []
+def _load_csvs(csv_files, date_col):
+    frames = []
     for f in csv_files:
-        df = pd.read_csv(f, parse_dates=['observationdate'])
-        all_data.append(df)
-    if all_data:
-        data = pd.concat(all_data, ignore_index=True)
-        return data.sort_values('observationdate')
-    return pd.DataFrame(columns=['observationdate'])
+        frames.append(pd.read_csv(f, parse_dates=[date_col]))
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
-def plot_timeline_single(data, store, color='tab:blue', label='Data'):
-    """Plot a single timeline with filled area under the curve."""
+def _yearly_cumulative_from_obs(csv_files):
+    """Return a yearly cumulative series from CSVs with an observation datetime column."""
+    data = _load_csvs(csv_files, "observationdate")
     if data.empty:
-        print(f"No data to plot for {label}.")
-        return
-    y = np.arange(len(data))
-    plt.figure(figsize=(12, 6))
-    plt.plot(data['observationdate'], y, color=color, label=label)
-    plt.fill_between(data['observationdate'], 0, y, color=color, alpha=0.3)
-    plt.xlabel('Observation Date')
-    plt.ylabel('Observation Index')
-    plt.title('Cumulative Timeline')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(store)
-    plt.close()
+        return pd.Series(dtype="int64")
+    years = data["observationdate"].dt.year
+    yearly = years.groupby(years).size().sort_index()
+    return yearly.cumsum()
 
 
-def plot_timeline_combined(data1, data2, store,
-                           color1='tab:blue',
-                           color2='tab:orange',
-                           label1='CSV Set 1',
-                           label2='CSV Set 2',
-                           log=False):
+def _yearly_cumulative_from_counts(csv_files):
+    """Return a yearly cumulative series from CSVs with date/count columns."""
+    data = _load_csvs(csv_files, "date")
+    if data.empty:
+        return pd.Series(dtype="int64")
+    data["year"] = data["date"].dt.year
+    yearly = data.groupby("year")["count"].sum().sort_index()
+    return yearly.cumsum()
 
-    plt.figure(figsize=(12, 6))
 
-    # Count observations per date
-    s1 = data1.groupby('observationdate').size()
-    s2 = data2.groupby('observationdate').size()
+def _series_to_xy(series):
+    return {
+        "x": [int(v) for v in series.index.tolist()],
+        "y": [int(v) for v in series.tolist()],
+    }
 
-    # Align on all shared dates
-    all_dates = s1.index.union(s2.index)
-    s1 = s1.reindex(all_dates, fill_value=0)
-    s2 = s2.reindex(all_dates, fill_value=0)
 
-    # Cumulative series
-    c1 = s1.cumsum()
-    c2 = s2.cumsum()
-    c2_stacked = c1 + c2
+def build_temporal_data(csv_dir_wp2, csv_dir_wp3, csv_dir_etn):
+    """Build the JSON payload used by `docs/temporal.html`."""
+    csv_dir_wp2 = Path(csv_dir_wp2)
+    csv_dir_wp3 = Path(csv_dir_wp3)
+    csv_dir_etn = Path(csv_dir_etn)
 
-    # ---- Helper to avoid plotting zero-lines ----
-    def first_nonzero_index(series):
-        nz = np.flatnonzero(series.values > 0)
-        return nz[0] if len(nz) else None
+    wp2 = _yearly_cumulative_from_obs(sorted(csv_dir_wp2.glob("*.csv")))
+    wp3 = _yearly_cumulative_from_obs(sorted(csv_dir_wp3.glob("*.csv")))
+    etn = _yearly_cumulative_from_counts(sorted(csv_dir_etn.glob("*temporal_count.csv")))
 
-    idx1 = first_nonzero_index(c1)
-    idx2 = first_nonzero_index(c2)
+    return {
+        "wp2": _series_to_xy(wp2),
+        "wp3": _series_to_xy(wp3),
+        "etn": _series_to_xy(etn),
+    }
 
-    # Plot first dataset (only after first nonzero)
-    if idx1 is not None:
-        plt.plot(all_dates[idx1:], c1[idx1:], color=color1, label=label1)
-        plt.fill_between(all_dates, 0, c1, color=color1, alpha=0.3)
 
-    # Plot second dataset (only after its first nonzero)
-    if idx2 is not None:
-        plt.plot(all_dates[idx2:], c2_stacked[idx2:], color=color2, label=label2)
-        plt.fill_between(all_dates, c1, c2_stacked, color=color2, alpha=0.3)
-
-    if log:
-        plt.yscale('log')
-    plt.xlabel('Observation Date')
-    plt.ylabel('Cumulative Count (stacked)')
-    plt.title('Cumulative Timeline')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(store)
-    plt.close()
+def write_temporal_data_json(output_path, csv_dir_wp2, csv_dir_wp3, csv_dir_etn):
+    """Create `docs/resources/temporal_data.json` from the harvested CSV folders."""
+    payload = build_temporal_data(csv_dir_wp2, csv_dir_wp3, csv_dir_etn)
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return output_path
 
 
 if __name__ == "__main__":
-    # Directories
-    csv_dir1 = Path("../data/output_call1")
-    csv_dir2 = Path("../data/output_sensor_data")
+    root = Path(__file__).resolve().parents[1]
+    data_root = root / "data"
+    output_path = root / "docs" / "resources" / "temporal_data.json"
 
-    csv_files1 = sorted(csv_dir1.glob("*.csv"))
-    csv_files2 = sorted(csv_dir2.glob("*.csv"))
+    write_temporal_data_json(
+        output_path=output_path,
+        csv_dir_wp2=data_root / "1.harvest_wp2_observation_data",
+        csv_dir_wp3=data_root / "2.harvest_wp3_sensor_observation_data",
+        csv_dir_etn=data_root / "3.harvest_ETN",
+    )
 
-    out_dir = Path("../plots")
+    print(f"Saved temporal JSON to {output_path}")
 
-    # Read CSVs
-    data_obs = read_csv_files(csv_files1)
-    data_sen = read_csv_files(csv_files2)
-
-    # Plot first CSV set
-    name_obs = "observations"
-    store_obs = out_dir / f'timeline_{name_obs}.png'
-
-    plot_timeline_single(data_obs,
-                         store=store_obs,
-                         color='tab:blue',
-                         label=name_obs)
-
-    # Plot second CSV set
-    name_sen = "sensor_observations"
-    store_sen = out_dir / f'timeline_{name_sen}.png'
-
-    plot_timeline_single(data_sen,
-                         store=store_sen,
-                         color='tab:orange',
-                         label=name_sen)
-
-    # Plot combined stacked timeline
-    name_all = "all_combined"
-    store_all = out_dir / f'timeline_{name_all}.png'
-
-    plot_timeline_combined(data_sen,
-                           data_obs,
-                           store=store_all,
-                           label1=name_sen,
-                           label2=name_obs,
-                           log=False)
-
-    store_all_log = out_dir / f'timeline_{name_all}_log.png'
-    plot_timeline_combined(data_sen,
-                           data_obs,
-                           store=store_all_log,
-                           label1=name_sen,
-                           label2=name_obs,
-                           log=True)

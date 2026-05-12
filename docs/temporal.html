@@ -1,11 +1,83 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>DTO-Bioflow dataset visualisation</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/uplot@1.6.22/dist/uPlot.min.css" rel="stylesheet">
+    <style>
+        .timeline-panel {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .timeline-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 18px;
+            align-items: center;
+            margin: 0 0 16px;
+            padding: 12px 14px;
+            background: #f7f9fc;
+            border: 1px solid #e3e8f0;
+            border-radius: 8px;
+        }
+        .timeline-controls label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+        .timeline-controls input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #2b6cb0;
+        }
+        .timeline-note {
+            margin: 0 0 14px;
+            color: #5a6575;
+        }
+        #chart {
+            width: 100%;
+            max-width: 1100px;
+            height: 480px;
+        }
+        .timeline-tooltip {
+            position: absolute;
+            display: none;
+            pointer-events: none;
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            font-size: 13px;
+            color: #222;
+            z-index: 100;
+            white-space: nowrap;
+        }
+        #legend {
+            margin-top: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .timeline-error {
+            padding: 14px;
+            border: 1px solid #f3c6c6;
+            background: #fff5f5;
+            color: #9b2c2c;
+            border-radius: 8px;
+            margin-top: 12px;
+            display: none;
+        }
+    </style>
 </head>
-
 <body>
 <nav class="navbar">
     <div class="navbar-container">
@@ -13,7 +85,6 @@
             <img src="https://dto-bioflow.eu/themes/custom/skeleton/logo.svg"
                  alt="DTO-Bioflow logo">
         </a>
-
         <ul class="navbar-menu">
             <li><a href="index.html">Welcome</a></li>
             <li><a href="maps.html">Spatial Coverage</a></li>
@@ -23,18 +94,23 @@
         </ul>
     </div>
 </nav>
-
 <main class="page-content">
-    <h2>Timelines</h2>
+    <div class="timeline-panel">
+        <h2>Timelines</h2>
 
-
+        <div class="timeline-controls" aria-label="Timeline dataset selection">
+            <label><input type="checkbox" id="cb-wp2" checked> WP2</label>
+            <label><input type="checkbox" id="cb-wp3" checked> WP3</label>
+            <label><input type="checkbox" id="cb-etn" checked> ETN</label>
+        </div>
+        <div id="chart"></div>
+        <div id="legend"></div>
+        <div id="timeline-error" class="timeline-error"></div>
+    </div>
 </main>
-
 <footer class="footer" role="contentinfo">
-
     <div class="footer-top">
         <div class="footer-container">
-
             <div class="footer-left">
                 <img src="https://dto-bioflow.eu/themes/custom/skeleton/images/flag_funded_eu.svg"
                      alt="Funded by the European Union">
@@ -43,18 +119,187 @@
                 The DTO-Bioflow project is funded by the European Union under the Horizon Europe Programme,
                 <a href="https://cordis.europa.eu/project/id/101112823/results" target="_blank" rel="noopener noreferrer"> Grant Agreement No. 101112823</a>.
             </div>
-
         </div>
     </div>
-
     <div class="footer-bottom">
         <p>© DTO-Bioflow — Funded by the European Union (Horizon Europe)</p>
     </div>
-
 </footer>
-
-
-
+<div id="tooltip" class="timeline-tooltip"></div>
+<script src="https://cdn.jsdelivr.net/npm/uplot@1.6.22/dist/uPlot.iife.min.js"></script>
+<script>
+    const TRACE_DEFS = {
+        wp2: { label: 'WP2', color: '#1f77b4' },
+        wp3: { label: 'WP3', color: '#ff7f0e' },
+        etn: { label: 'ETN', color: '#2ca02c' }
+    };
+    function formatCompact(v) {
+        if (v >= 1e6) return (Math.round(v / 1e5) / 10) + 'M';
+        if (v >= 1e3) return (Math.round(v / 100) / 10) + 'K';
+        return String(Math.round(v));
+    }
+    function niceTickStep(maxVal, targetTicks=5) {
+        const raw = Math.max(1, maxVal / targetTicks);
+        const exp = Math.floor(Math.log10(raw));
+        const mag = Math.pow(10, exp);
+        const norm = raw / mag;
+        let nice = 1;
+        if (norm <= 1) nice = 1;
+        else if (norm <= 2) nice = 2;
+        else if (norm <= 5) nice = 5;
+        else nice = 10;
+        return nice * mag;
+    }
+    let chart = null;
+    let dataForChart = null;
+    let timelineData = null;
+    function buildUplotOptions(xArr, maxVal, series_opts) {
+        const xMin = Math.min(...xArr);
+        const xMax = Math.max(...xArr);
+        const start = Math.floor(xMin/10)*10;
+        const end = Math.ceil(xMax/10)*10;
+        const xTicks = [];
+        for (let y = start; y <= end; y += 10) xTicks.push(y);
+        const yStep = niceTickStep(maxVal, 5);
+        const yMaxNice = Math.max(yStep, Math.ceil(maxVal / yStep) * yStep);
+        return {
+            width: document.getElementById('chart').clientWidth,
+            height: 480,
+            series: series_opts,
+            axes: [
+                {
+                    ticks: { values: xTicks },
+                    values: (u, vals) => vals.map(v => String(Math.round(v)))
+                },
+                {
+                    values: (u, vals) => vals.map(v => formatCompact(v)),
+                    size: 60,
+                    scale: 'y'
+                }
+            ],
+            scales: {
+                x: { auto: false, min: xMin, max: xMax },
+                y: { auto: false, min: 0, max: yMaxNice }
+            },
+            legend: { show: false },
+            hooks: {
+                setCursor: [ (u) => {
+                    const tooltip = document.getElementById('tooltip');
+                    if (u.cursor.idx == null) { tooltip.style.display='none'; return; }
+                    const idx = u.cursor.idx;
+                    const x = u.data[0][idx];
+                    let html = `<strong>Year: ${x}</strong><br>`;
+                    for (let si = 1; si < u.series.length; si++) {
+                        const label = u.series[si].label;
+                        const val = u.data[si][idx];
+                        if (val != null) {
+                            html += `${label}: ${formatCompact(val)}<br>`;
+                        }
+                    }
+                    tooltip.innerHTML = html;
+                    tooltip.style.display = 'block';
+                    const rect = u.root.getBoundingClientRect();
+                    const cx = u.cursor.left;
+                    const cy = u.cursor.top;
+                    tooltip.style.left = (rect.left + cx + 12) + 'px';
+                    tooltip.style.top = (rect.top + cy + 12) + 'px';
+                } ]
+            }
+        };
+    }
+    function renderWithData(timeline) {
+        const selected = [];
+        if (document.getElementById('cb-wp2').checked) selected.push({key: 'wp2', idx: 1});
+        if (document.getElementById('cb-wp3').checked) selected.push({key: 'wp3', idx: 2});
+        if (document.getElementById('cb-etn').checked) selected.push({key: 'etn', idx: 3});
+        if (selected.length === 0) {
+            if (chart) chart.destroy();
+            chart = null;
+            return;
+        }
+        const allX = Array.from(new Set(
+            selected.flatMap(s => timeline[s.key]?.x || [])
+        )).sort((a,b)=>a-b);
+        const series_data = {};
+        for (const s of selected) {
+            const map = {};
+            const ts = timeline[s.key];
+            if (ts) {
+                for (let i = 0; i < ts.x.length; i++) {
+                    map[ts.x[i]] = ts.y[i];
+                }
+            }
+            series_data[s.key] = allX.map(x => map[x] != null ? map[x] : null);
+        }
+        let selectedMax = 0;
+        for (const s of selected) {
+            const arr = series_data[s.key];
+            const validVals = arr.filter(v => v != null);
+            if (validVals.length > 0) {
+                selectedMax = Math.max(selectedMax, ...validVals);
+            }
+        }
+        selectedMax = Math.max(1, selectedMax);
+        const data = [allX];
+        for (const s of selected) {
+            data.push(series_data[s.key]);
+        }
+        dataForChart = data;
+        if (chart) {
+            chart.destroy();
+        }
+        const series_opts = [{}];
+        for (const s of selected) {
+            series_opts.push({
+                label: TRACE_DEFS[s.key].label,
+                stroke: TRACE_DEFS[s.key].color,
+                width: 2,
+                points: { show: true, size: 6 }
+            });
+        }
+        const opts = buildUplotOptions(allX, selectedMax, series_opts);
+        chart = new uPlot(opts, data, document.getElementById('chart'));
+        ['cb-wp2','cb-wp3','cb-etn'].forEach((id) => {
+            document.getElementById(id).onchange = () => {
+                renderWithData(timeline);
+            };
+        });
+        const legendEl = document.getElementById('legend');
+        legendEl.innerHTML = '';
+        for (const s of selected) {
+            const item = document.createElement('div');
+            item.style.display = 'flex';
+            item.style.gap = '6px';
+            item.style.alignItems = 'center';
+            const swatch = document.createElement('div');
+            swatch.style.width = '16px';
+            swatch.style.height = '16px';
+            swatch.style.backgroundColor = TRACE_DEFS[s.key].color;
+            swatch.style.borderRadius = '2px';
+            const label = document.createElement('span');
+            label.textContent = TRACE_DEFS[s.key].label;
+            label.style.fontSize = '13px';
+            item.appendChild(swatch);
+            item.appendChild(label);
+            legendEl.appendChild(item);
+        }
+    }
+    function showError(message) {
+        const box = document.getElementById('timeline-error');
+        box.textContent = message;
+        box.style.display = message ? 'block' : 'none';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('docs/resources/temporal_data.json')
+            .then(r => r.ok ? r.json() : null)
+            .then(json => {
+                if (json) {
+                    timelineData = json;
+                    renderWithData(json);
+                }
+            })
+            .catch(() => { /* silent fail on file:// */ });
+    });
+</script>
 </body>
-
 </html>

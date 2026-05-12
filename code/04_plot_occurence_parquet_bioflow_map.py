@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 """
-Plot unique observation/sensor locations:
-
-- plot every CSV individually (loop over csv_all)
-- plot combined map for WP3 (csv_wp3)
-- plot combined map for Call1 (csv_call1)
-- plot combined map for Call1+WP3 (csv_all)
-
-Each combined map includes a text box listing DASIDs.
-
-Makes also gif for each cluster.
+Plot unique observation/sensor locations for WP2 call 1 data and WP3 sensor
+data. Data are sourced from /data/1.harvest_wp2_observation_data and from
+data/2.harvest_wp3_sensor_observation_data. Plots are stored in
+/plots/wp2_call1_observation_maps and /plots/wp3_sensor_observation_maps.
+Makes also gif for each cluster which is stored in /plots.
 """
 from pathlib import Path
 import ast

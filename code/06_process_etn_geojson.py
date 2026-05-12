@@ -1,3 +1,9 @@
+"""
+creates a single geojson from ETN data. Sources data from /data/3.harvest_ETN
+and saves the combined geojson to /plots/etn_combined_map.geojson. The
+geojson contains points for each station with properties for station name,
+count, and dataset source.
+"""
 import pandas as pd
 from pathlib import Path
 import json
@@ -16,9 +22,6 @@ def get_datasets():
     csv_files = sorted([f for f in data_dir.glob("*.csv")
                        if not str(f).endswith("_taxonomic_count.csv")])
     return csv_files
-
-
-
 
 
 def combined_map(datasets):
