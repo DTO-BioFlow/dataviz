@@ -1,4 +1,14 @@
+"""
+create timeline values in geojson. The occurrences are grouped per year and
+stored in a json with format year and count. The script reads the CSV files
+from the three harvest folders, extracts the relevant date information, and
+computes cumulative counts of occurrences per year. The resulting data is
+structured in a JSON format suitable for use in the `docs/temporal.html`
+visualization. The script also ensures that the output JSON file is saved to
+the appropriate location within the project structure.
+"""
 from pathlib import Path
+import ast
 import json
 import pandas as pd
 
@@ -6,17 +16,52 @@ import pandas as pd
 def _load_csvs(csv_files, date_col):
     frames = []
     for f in csv_files:
-        frames.append(pd.read_csv(f, parse_dates=[date_col]))
+        frame = pd.read_csv(f)  # type: ignore[call-overload]
+        frame[date_col] = pd.to_datetime(frame[date_col])
+        frames.append(frame)
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
+def _parse_aphiaid_value(value):
+    """Return a list of AphiaIDs from scalars, list-like strings, or lists."""
+    if value is None:
+        return []
+
+    if isinstance(value, (list, tuple, set)):
+        items = value
+    else:
+        text = str(value).strip()
+        if not text or text.lower() in {"nan", "none", "null"}:
+            return []
+
+        try:
+            parsed = ast.literal_eval(text)
+        except Exception:
+            parsed = text
+
+        if isinstance(parsed, (list, tuple, set)):
+            items = parsed
+        else:
+            items = [parsed]
+
+    aphiaid_values = []
+    for item in items:
+        item_text = str(item).strip().strip("[]").strip("'").strip('"')
+        if item_text.isdigit():
+            aphiaid_values.append(int(item_text))
+
+    return aphiaid_values
+
+
 def _yearly_cumulative_from_obs(csv_files):
-    """Return a yearly cumulative series from CSVs with an observation datetime column."""
+    """Return a yearly cumulative series from CSVs with observation datetime and aphiaid columns."""
     data = _load_csvs(csv_files, "observationdate")
     if data.empty:
         return pd.Series(dtype="int64")
-    years = data["observationdate"].dt.year
-    yearly = years.groupby(years).size().sort_index()
+
+    data["year"] = data["observationdate"].dt.year
+    data["count"] = data["aphiaid"].apply(lambda value: max(1, len(_parse_aphiaid_value(value))))
+    yearly = data.groupby("year")["count"].sum().sort_index()
     return yearly.cumsum()
 
 

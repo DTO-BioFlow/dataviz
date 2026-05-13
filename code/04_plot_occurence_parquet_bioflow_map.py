@@ -37,15 +37,42 @@ MIN_SIDE = 150_000  # 150 km minimum side for extents
 
 def parse_aphia(val):
     """Safely parse aphiaid column values into a list."""
-    if isinstance(val, list):
-        return val
-    if pd.isna(val):
+    if val is None:
         return []
-    try:
-        return ast.literal_eval(str(val))
-    except Exception:
-        # if parsing fails, return empty list
-        return []
+
+    if isinstance(val, (list, tuple, set)):
+        items = val
+    else:
+        text = str(val).strip()
+        if not text or text.lower() in {"nan", "none", "null"}:
+            return []
+
+        try:
+            parsed = ast.literal_eval(text)
+        except Exception:
+            parsed = text
+
+        if isinstance(parsed, (list, tuple, set)):
+            items = parsed
+        else:
+            items = [parsed]
+
+    aphia_values = []
+    for item in items:
+        item_text = str(item).strip().strip("[]").strip("'").strip('"')
+        if item_text.isdigit():
+            aphia_values.append(int(item_text))
+
+    return aphia_values
+
+
+def _count_occurrences(gdf):
+    """Count total occurrences by expanding AphiaID lists in each row."""
+    if "obs_count" in gdf.columns:
+        return int(gdf["obs_count"].sum())
+    if "aphiaid" in gdf.columns:
+        return int(gdf["aphiaid"].apply(len).sum())
+    return len(gdf)
 
 
 def read_csv_as_unique_gdf(csv_file):
@@ -199,15 +226,14 @@ def plot_gdf_map(
     ax.set_yticks([])
     ax.set_axis_off()
 
-    # add number of features in the title + unique aphiaIDs
-    n_observations = len(gdf)
-    n_taxa = gdf["aphiaid"].apply(len).sum() if "aphiaid" in gdf.columns else 0
-    n_unique_aphia = len(
-        set([aid for sublist in gdf.get("aphiaid", []) for aid in sublist]))
+    # add number of locations, expanded occurrences, and unique aphia IDs
+    n_locations = len(gdf)
+    n_occurrences = _count_occurrences(gdf)
+    n_unique_aphia = len({aid for sublist in gdf.get("aphiaid", []) for aid in sublist})
 
     if title:
         ax.set_title(
-            f"{title}\nObservations: {n_observations} | Taxa: {n_unique_aphia}",
+            f"{title}\nLocations: {n_locations} | Occurrences: {n_occurrences} | Taxa: {n_unique_aphia}",
             fontsize=13)
 
     # INSET WORLD MAP — only if show_inset=True
@@ -364,9 +390,9 @@ if __name__ == "__main__":
 
     # 1) Plot each CSV individually (loop over all CSVs)
     print(">> Plotting each CSV individually...")
-    # plot_each_csv_individual(csv_call1, Path("../plots/wp2_call1_observation_maps"), format='webp')
+    plot_each_csv_individual(csv_call1, Path("../plots/wp2_call1_observation_maps"), format='webp')
     make_gif(Path("../plots/wp2_call1_observation_maps"), Path("../plots"), "wp2_call1_observation_maps_gif")
 
-    # plot_each_csv_individual(csv_wp3, Path("../plots/wp3_sensor_observation_maps"), format='webp')
+    plot_each_csv_individual(csv_wp3, Path("../plots/wp3_sensor_observation_maps"), format='webp')
     make_gif(Path("../plots/wp3_sensor_observation_maps"), Path("../plots"), "wp3_sensor_observation_maps_gif")
 
