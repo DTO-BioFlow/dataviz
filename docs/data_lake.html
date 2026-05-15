@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -26,9 +26,39 @@
 </nav>
 
 <main class="page-content">
-    <h2>Taxonomy</h2>
+    <h2>Data Lake</h2>
+    <h3>STAC</h3>
+    <div>
+        EDITO uses a SpatioTemporal Asset Catalog (STAC).
+        <br>
+        The STAC endpoint
+          <a target="_blank" rel="noopener noreferrer" href="https://catalog.dive.edito.eu">https://catalog.dive.edito.eu</a>.
+        can be viewed on
+        <a target="_blank" rel="noopener noreferrer" href="https://viewer.dive.edito.eu/map?c=0,0,2.35&catalog=https:%2F%2Fapi.dive.edito.eu%2Fdata%2Fcatalogs">EDITO datalab > integrate data</a>
+        or queried programmatically.
+    </div>
 
+    <h3>Cluster 1 and 2: EMODNET-Biology</h3>
+    <div>
+        All EMODnet biology data is made available in this collection:
+        <br>
+        <a target="_blank" rel="noopener noreferrer" href="https://api.dive.edito.eu/data/collections/emodnet-occurrence_data/">https://api.dive.edito.eu/data/collections/emodnet-occurrence_data/</a>
+        <br>
+        which at this moment contains this parquet file:
+        <br>
+        <a target="_blank" rel="noopener noreferrer" href="https://s3.waw3-1.cloudferro.com/emodnet/emodnet_biology/12639/marine_biodiversity_observations_2026-02-26.parquet">https://s3.waw3-1.cloudferro.com/emodnet/emodnet_biology/12639/marine_biodiversity_observations_2026-02-26.parquet</a>
+        <br>
+        The file was filtered to select the matching datasets by their <i>dasid</i>.
 
+    </div>
+
+    <h3>Cluster 3: ETN</h3>
+    Data is stored in this collection:
+    <br>
+    <a target="_blank" rel="noopener noreferrer" href=https://www.lifewatch.be/etn/parquet/animal_tracking_datasets/collection.json>https://www.lifewatch.be/etn/parquet/animal_tracking_datasets/collection.json</a>
+    <div>
+
+    </div>
 </main>
 
 <footer class="footer" role="contentinfo">

@@ -77,6 +77,26 @@
             text-align: center;
         }
     </style>
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+      mermaid.initialize({
+        startOnLoad: true,
+
+        theme: 'base',
+
+        themeVariables: {
+          primaryColor: '#dbeafe',
+          primaryTextColor: '#1e3a8a',
+          primaryBorderColor: '#2563eb',
+
+          lineColor: '#2563eb',
+
+          secondaryColor: '#bfdbfe',
+          tertiaryColor: '#eff6ff'
+        }
+      });
+    </script>
     <script>
         // Slideshow data
         const slideshowData = {
@@ -296,12 +316,13 @@
             <li><a href="taxonomic_diversity.html">Taxonomic Diversity</a></li>
             <li><a href="temporal.html">Temporal Overview</a></li>
             <li><a href="bioflow_datasets.html">DTO-Bioflow datasets</a></li>
+            <li><a href="data_lake.html">Data Lake</a></li>
         </ul>
     </div>
 </nav>
 
 <main class="page-content">
-    <h2>Welcome to DTO-Bioflow Data Contribution Visualization</h2>
+    <h2>DTO-Bioflow Data Contribution to EDITO: Visualization </h2>
     <div></div>
     <h2>Data flows</h2>
     <div>
@@ -311,30 +332,61 @@
         and via the <b>blueprint</b>
         (<a href="https://zenodo.org/records/16538490">https://zenodo.org/records/16538490</a>).
     </div>
+    <br>
+    <div>
+        This flowchart below illustrates the main concept.
+    </div>
+    <div class="mermaid">
+    flowchart TD
+        A[Data] --> B[EMODnet-Biology]
+        B -- [pre-existing pipeline] --> D[EDITO Infra data lake]
+        C[data] -- [direct ingestion] --> D
+    </div>
+
     <h2>Data Clusters</h2>
     <div>
-        For providing better overview, datasets are clustered in this visualization project. <br>
-        Following clusters have been identified based on the data sources and pipelines:
+        Datasets can be clustered depending on their source and pipeline. <br>
+        Following clusters have been identified:
         <ul>
             <li>
-                EMODnet Pipeline: data submitted to EMODnet and ingested in EDITO via pre-existing EMODnet-EDITO pipeline
+                EMODnet Pipeline: data submitted to EMODnet and ingested in EDITO via pre-existing EMODnet-EDITO pipeline.
                 <ul>
-                    <li><b>Cluster 1: Observation data (WP2 call-1)</b></li>
-                    <li><b>Cluster 2: Sensor observation data (WP3)</b></li>
+                    <li><b>Cluster 1</b>: <a href="https://dto-bioflow.eu/open-calls">New Observation data from open call for data providers</a> (with FSTP grants)</li>
+                    <li><b>Cluster 2</b>: Sensor observation data</li>
                 </ul>
             </li>
             <li>
-                Direct connections: data hosted on other databases and ingested in EDITO via newly developed pipelines
+                Direct connections: data hosted on other databases and ingested in EDITO via newly developed pipelines.
                 <ul>
-                    <li><b>Cluster 3: ETN data (European Tracking Network)</b></li>
+                    <li><b>Cluster 3</b>: Sensor data too extensive for EMODnet-Biology (ETN: European Tracking Network)</li>
                 </ul>
             </li>
         </ul>
+
+    </div>
+    <div class="mermaid">
+    flowchart TD
+
+        subgraph INPUTS["EMODNET-Biology pipeline"]
+            A[<b>Cluster 1</b>: New Observation data from open call for data providers]
+            A2["<b>Cluster 2</b>: Sensor observation data"]
+            B[EMODnet-Biology]
+        end
+
+        A --> B
+        A2 --> B
+
+        B -- pre-existing pipeline --> D[EDITO Infra data lake]
+        C["<b>Cluster 3</b>: Sensor data too extensive for EMODnet-Biology (ETN)"] -- direct ingestion --> D
+
     </div>
 
-    <h2>Data previews</h2>
-    <div>All individual datasets and previews are available in <a href="bioflow_datasets.html">DTO-Bioflow datasets</a></div>
-    <h3>Cluster 1: WP2 Call-1 Observation Data Maps</h3>
+    <h2>Previews</h2>
+    <div>
+        A list of all datasets and previews is available in the <a href="bioflow_datasets.html">DTO-Bioflow datasets</a> section.
+        Below there are some initial previews of these datasets.
+    </div>
+    <h3>Cluster 1: New Observation data from open call</h3>
     <div class="slideshow-container wp2-slideshow">
         <div class="slideshow-content">
             <img class="slideshow-image" id="wp2-image" src="" alt="WP2 Observation Map">
@@ -347,7 +399,7 @@
         </div>
     </div>
 
-    <h3>Cluster 2: WP3 Sensor Observation Data Maps</h3>
+    <h3>Cluster 2: Sensor observation data</h3>
     <div class="slideshow-container wp3-slideshow">
         <div class="slideshow-content">
             <img class="slideshow-image" id="wp3-image" src="" alt="WP3 Sensor Observation Map">
@@ -360,7 +412,7 @@
         </div>
     </div>
 
-    <h3>Cluster 3: ETN data</h3>
+    <h3>Cluster 3: European Tracking Network (ETN)</h3>
     <div class="slideshow-container etn-slideshow">
         <div class="slideshow-content">
             <img class="slideshow-image" id="etn-image" src="" alt="ETN Data Map">
@@ -393,7 +445,8 @@
     </div>
 
     <div class="footer-bottom">
-        <p>© DTO-Bioflow — Funded by the European Union (Horizon Europe)</p>
+        <p>© DTO-Bioflow .” Funded by the European Union (Horizon Europe)</p>
+        <p>Developed by Willem Boone <br> VLIZ - Marine Observation Center</p>
     </div>
 
 </footer>

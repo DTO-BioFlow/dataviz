@@ -1,12 +1,11 @@
-from collections import defaultdict
-import json
-from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import json
 from pathlib import Path
 from collections import defaultdict
 from matplotlib import colors as mcolors
+
+
 
 
 def build_sunburst_df(taxonomy_data):
@@ -80,6 +79,37 @@ def merge_taxonomies(all_taxonomies):
     return [{"taxonomy": list(k), "count": v} for k, v in merged.items()]
 
 
+def aggregate_cumulative_values(df):
+    """
+    Given a dataframe with rows for each node (id, label, parent) and 'value'
+    that currently contains counts only for the original leaves, compute the
+    cumulative value for each node as the sum of all descendant leaf counts.
+    This updates the 'value' column so parent nodes reflect the sum of
+    their children (which Plotly expects when using branchvalues='total').
+    """
+    # Build map of id -> value
+    val_map = {row['id']: float(row['value']) for _, row in df.iterrows()}
+
+    # Ensure every node has an entry (parents might be missing until add_missing_parents)
+    for _, row in df.iterrows():
+        val_map.setdefault(row['id'], 0.0)
+
+    # Sort ids by depth (deeper nodes first) so we can accumulate up to parents
+    ids_sorted = sorted(val_map.keys(), key=lambda s: s.count('|'), reverse=True)
+    for node_id in ids_sorted:
+        if '|' in node_id:
+            parent = node_id.rsplit('|', 1)[0]
+        else:
+            parent = ""
+        if parent:
+            val_map[parent] = val_map.get(parent, 0.0) + val_map.get(node_id, 0.0)
+
+    # Apply back to dataframe
+    df = df.copy()
+    df['value'] = df['id'].map(lambda i: val_map.get(i, 0.0))
+    return df
+
+
 
 def assign_nested_colors(df):
     """
@@ -110,9 +140,8 @@ def assign_nested_colors(df):
 
 if __name__ == "__main__":
 
+    # Define sources: two folders and one ETN file
     script_dir = Path(__file__).resolve().parent
-
-    # Input folders
     sources = [
         {"path": script_dir / ".." / "data" / "worms" / "worms_call1_data", "name": "call1", "kind": "folder"},
         {"path": script_dir / ".." / "data" / "worms" / "worms_sensor_data", "name": "sensor", "kind": "folder"},
@@ -122,77 +151,92 @@ if __name__ == "__main__":
     output_base_dir = (script_dir / ".." / "plots" / "sunburst").resolve()
     output_base_dir.mkdir(parents=True, exist_ok=True)
 
-    all_data_combined = []
+    all_records = []
 
     for source in sources:
         input_path = source["path"]
         name = source["name"]
         kind = source["kind"]
-        folder_data = []
+
+        records = []
 
         if kind == "folder":
-            output_dir = output_base_dir / name
-            output_dir.mkdir(parents=True, exist_ok=True)
+            if not input_path.exists():
+                print(f"Warning: folder not found for source '{name}': {input_path}")
+                continue
+            for json_file in sorted(input_path.glob("*.json")):
+                try:
+                    with open(json_file, "r", encoding="utf-8") as f:
+                        taxonomy_data = json.load(f)
+                        if isinstance(taxonomy_data, list):
+                            records.extend(taxonomy_data)
+                        else:
+                            print(f"Skipping {json_file} - expected list of records")
 
-            # Process each JSON file
-            for json_file in input_path.glob("*.json"):
-                with open(json_file, "r") as f:
+                        # Individual sunburst per file (optional)
+                        df_sb = build_sunburst_df(taxonomy_data)
+                        df_sb = add_missing_parents(df_sb)
+                        df_sb = aggregate_cumulative_values(df_sb)
+                        df_sb = remove_zero_branches(df_sb)
+                        colors = assign_nested_colors(df_sb)
+                        fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value', branchvalues='total')
+                        fig.update_traces(marker=dict(colors=colors))
+                        fig.update_layout(margin=dict(t=10, l=10, r=10, b=10))
+                        out_dir = output_base_dir / name
+                        out_dir.mkdir(parents=True, exist_ok=True)
+                        output_file = out_dir / f"{json_file.stem}.html"
+                        fig.write_html(output_file, include_plotlyjs='cdn', full_html=True)
+                        print(f"Saved individual sunburst: {output_file}")
+
+                except Exception as e:
+                    print(f"Failed to read {json_file}: {e}")
+
+        else:  # single file
+            if not input_path.exists():
+                print(f"Warning: file not found for source '{name}': {input_path}")
+                continue
+            try:
+                with open(input_path, "r", encoding="utf-8") as f:
                     taxonomy_data = json.load(f)
-                    folder_data.extend(taxonomy_data)
+                    if isinstance(taxonomy_data, list):
+                        records.extend(taxonomy_data)
+                    else:
+                        print(f"Unexpected content in {input_path} - expected list of records")
+            except Exception as e:
+                print(f"Failed to read {input_path}: {e}")
+                continue
 
-                # Individual sunburst
-                df_sb = build_sunburst_df(taxonomy_data)
-                df_sb = remove_zero_branches(df_sb)
-                df_sb = add_missing_parents(df_sb)
-                fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value')
-                fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value', branchvalues='total')
-                fig.update_traces(marker=dict(colors=colors))
-                fig.update_layout(margin=dict(t=10, l=10, r=10, b=10))
-                output_file = output_dir / f"{json_file.stem}.html"
-                fig.write_html(output_file)
-                print(f"Saved individual sunburst: {output_file}")
+        if not records:
+            print(f"No taxonomy records found for source '{name}', skipping output.")
+            continue
 
-        else:
-            with open(input_path, "r") as f:
-                taxonomy_data = json.load(f)
-                folder_data.extend(taxonomy_data)
+        # Save merged sunburst for this source
+        merged_data = merge_taxonomies(records)
+        df_sb = build_sunburst_df(merged_data)
+        df_sb = add_missing_parents(df_sb)
+        df_sb = aggregate_cumulative_values(df_sb)
+        df_sb = remove_zero_branches(df_sb)
+        colors = assign_nested_colors(df_sb)
+        fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value', branchvalues='total')
+        fig.update_traces(marker=dict(colors=colors))
+        fig.update_layout(margin=dict(t=10, l=10, r=10, b=10))
+        merged_file = output_base_dir / f"{name}.html"
+        fig.write_html(merged_file, include_plotlyjs='cdn', full_html=True)
+        print(f"Saved merged sunburst for {name}: {merged_file}")
 
-            df_sb = build_sunburst_df(taxonomy_data)
-            df_sb = remove_zero_branches(df_sb)
-            fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value')
-            colors = assign_nested_colors(df_sb)
-            fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value', branchvalues='total')
-            fig.update_traces(marker=dict(colors=colors))
-            fig.update_layout(margin=dict(t=10, l=10, r=10, b=10))
-            output_file = output_base_dir / f"{name}.html"
-            fig.write_html(output_file)
-            print(f"Saved individual sunburst: {output_file}")
+        all_records.extend(records)
 
-        # Merge all JSONs in the folder; for single-file sources, the standalone output is already the merged output.
-        if kind == "folder":
-            merged_data = merge_taxonomies(folder_data)
-            df_sb = build_sunburst_df(merged_data)
-            fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value')
-            df_sb = add_missing_parents(df_sb)
-            colors = assign_nested_colors(df_sb)
-            fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value', branchvalues='total')
-            fig.update_traces(marker=dict(colors=colors))
-            fig.update_layout(margin=dict(t=10, l=10, r=10, b=10))
-            merged_file = output_base_dir / f"{name}.html"  # call1.html or sensor.html
-            fig.write_html(merged_file)
-            print(f"Saved merged sunburst for {name}: {merged_file}")
-
-        all_data_combined.extend(folder_data)
-
-    # Merge all data together
-    fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value')
-    df_sb = build_sunburst_df(merged_all)
-    df_sb = remove_zero_branches(df_sb)
-    df_sb = add_missing_parents(df_sb)
-    colors = assign_nested_colors(df_sb)
-    fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value', branchvalues='total')
-    fig.update_traces(marker=dict(colors=colors))
-    fig.update_layout(margin=dict(t=10, l=10, r=10, b=10))
-    combined_file = output_base_dir / "all_data.html"
-    fig.write_html(combined_file)
-    print(f"Saved merged sunburst for all data: {combined_file}")
+    # Create combined sunburst of all sources
+    if all_records:
+        merged_all = merge_taxonomies(all_records)
+        df_sb = build_sunburst_df(merged_all)
+        df_sb = add_missing_parents(df_sb)
+        df_sb = aggregate_cumulative_values(df_sb)
+        df_sb = remove_zero_branches(df_sb)
+        colors = assign_nested_colors(df_sb)
+        fig = px.sunburst(df_sb, ids='id', names='label', parents='parent', values='value', branchvalues='total')
+        fig.update_traces(marker=dict(colors=colors))
+        fig.update_layout(margin=dict(t=10, l=10, r=10, b=10))
+        combined_file = output_base_dir / "all_data.html"
+        fig.write_html(combined_file, include_plotlyjs='cdn', full_html=True)
+        print(f"Saved merged sunburst for all data: {combined_file}")

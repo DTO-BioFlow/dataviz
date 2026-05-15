@@ -5,13 +5,17 @@
 <br>
 [DTO-Bioflow project](https://dto-bioflow.eu/) 
 
+## Docs
+
+For dev run 
+```
+python -m http.server 8000
+```
+Then visit ```http://localhost:8000/docs/```
+
 
 ## Credits
 The DTO-Bioflow project is funded by the European Union under the Horizon Europe Programme, [Grant Agreement No. 101112823](https://cordis.europa.eu/project/id/101112823/results).
 
 
-
 (c) Willem Boone, 2026.
-
-
-
