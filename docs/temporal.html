@@ -164,6 +164,22 @@
     let chart = null;
     let dataForChart = null;
     let timelineData = null;
+    function normalizeTimelinePayload(timeline) {
+        if (!timeline || typeof timeline !== 'object') return null;
+        const aliases = {
+            wp2: ['wp2', 'Observation data', 'Cluster 1'],
+            wp3: ['wp3', 'Sensor observation data', 'Cluster 2'],
+            etn: ['etn', 'ETN', 'Cluster 3']
+        };
+        const normalized = {};
+        for (const key of Object.keys(TRACE_DEFS)) {
+            const matchKey = aliases[key].find((candidate) => timeline[candidate]);
+            if (matchKey && Array.isArray(timeline[matchKey].x) && Array.isArray(timeline[matchKey].y)) {
+                normalized[key] = timeline[matchKey];
+            }
+        }
+        return normalized;
+    }
     function buildUplotOptions(xArr, maxVal, series_opts) {
         const xMin = Math.min(...xArr);
         const xMax = Math.max(...xArr);
@@ -219,6 +235,15 @@
         };
     }
     function renderWithData(timeline) {
+        const normalizedTimeline = normalizeTimelinePayload(timeline);
+        if (!normalizedTimeline) {
+            showError('Timeline data could not be read.');
+            if (chart) chart.destroy();
+            chart = null;
+            document.getElementById('legend').innerHTML = '';
+            return;
+        }
+        showError('');
         const selected = [];
         if (document.getElementById('cb-wp2').checked) selected.push({key: 'wp2', idx: 1});
         if (document.getElementById('cb-wp3').checked) selected.push({key: 'wp3', idx: 2});
@@ -226,15 +251,23 @@
         if (selected.length === 0) {
             if (chart) chart.destroy();
             chart = null;
+            document.getElementById('legend').innerHTML = '';
             return;
         }
         const allX = Array.from(new Set(
-            selected.flatMap(s => timeline[s.key]?.x || [])
+            selected.flatMap(s => normalizedTimeline[s.key]?.x || [])
         )).sort((a,b)=>a-b);
+        if (allX.length === 0) {
+            if (chart) chart.destroy();
+            chart = null;
+            document.getElementById('legend').innerHTML = '';
+            showError('No timeline data is available for the selected clusters.');
+            return;
+        }
         const series_data = {};
         for (const s of selected) {
             const map = {};
-            const ts = timeline[s.key];
+            const ts = normalizedTimeline[s.key];
             if (ts) {
                 for (let i = 0; i < ts.x.length; i++) {
                     map[ts.x[i]] = ts.y[i];
@@ -272,7 +305,7 @@
         chart = new uPlot(opts, data, document.getElementById('chart'));
         ['cb-wp2','cb-wp3','cb-etn'].forEach((id) => {
             document.getElementById(id).onchange = () => {
-                renderWithData(timeline);
+                renderWithData(normalizedTimeline);
             };
         });
         const legendEl = document.getElementById('legend');
@@ -307,9 +340,13 @@
                 if (json) {
                     timelineData = json;
                     renderWithData(json);
+                } else {
+                    showError('Timeline data could not be loaded.');
                 }
             })
-            .catch(() => { /* silent fail on file:// */ });
+            .catch(() => {
+                showError('Timeline data could not be loaded. If you opened this page directly from disk, serve the `docs/` folder through a local web server.');
+            });
     });
 </script>
 </body>
