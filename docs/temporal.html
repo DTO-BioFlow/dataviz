@@ -97,16 +97,25 @@
 </nav>
 <main class="page-content">
     <div class="timeline-panel">
-        <h2>Timelines</h2>
+        <h2>Timeline</h2>
 
         <div class="timeline-controls" aria-label="Timeline dataset selection">
-            <label><input type="checkbox" id="cb-wp2" checked> WP2</label>
-            <label><input type="checkbox" id="cb-wp3" checked> WP3</label>
-            <label><input type="checkbox" id="cb-etn" checked> ETN</label>
+            <label><input type="checkbox" id="cb-wp2" checked>Cluster 1</label>
+            <label><input type="checkbox" id="cb-wp3" checked>Cluster 2</label>
+            <label><input type="checkbox" id="cb-etn" checked>Cluster 3</label>
         </div>
         <div id="chart"></div>
         <div id="legend"></div>
         <div id="timeline-error" class="timeline-error"></div>
+    </div>
+    <h3>Cluster definitions</h3>
+    <div>
+        <ul>
+            <li>Cluster 1: Observation data from open call for data providers (with FSTP grants)</li>
+            <li>Cluster 2: Sensor observation data</li>
+            <li>Cluster 3: Sensor data too extensive for EMODnet-Biology (ETN: European Tracking Network)</li>
+        </ul>
+        See <a href="index.html">welcome page</a> for full description of the clusters.
     </div>
 </main>
 <footer class="footer" role="contentinfo">
@@ -131,8 +140,8 @@
 <script src="https://cdn.jsdelivr.net/npm/uplot@1.6.22/dist/uPlot.iife.min.js"></script>
 <script>
     const TRACE_DEFS = {
-        wp2: { label: 'WP2', color: '#1f77b4' },
-        wp3: { label: 'WP3', color: '#ff7f0e' },
+        wp2: { label: 'Observation data', color: '#1f77b4' },
+        wp3: { label: 'Sensor observation data', color: '#ff7f0e' },
         etn: { label: 'ETN', color: '#2ca02c' }
     };
     function formatCompact(v) {
