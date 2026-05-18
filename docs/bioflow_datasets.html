@@ -12,7 +12,7 @@
             // Create HTML for the popup window
             const htmlContent = `
                 <!DOCTYPE html>
-                <html>
+                <html lang="en">
                 <head>
                     <title>Map View</title>
                     <style>
@@ -63,6 +63,207 @@
             newWindow.document.write(htmlContent);
             newWindow.document.close();
         }
+
+        const slideshowData = {
+            wp2: [
+                'resources/maps/wp2_call1_observation_maps/dasid_8784.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8785.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8787.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8789.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8791.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8792.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8801.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8795.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8796.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8797.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8802.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8803.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8798.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8799.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8800.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8804.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8805.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8806.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8816.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8814.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8807.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8808.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8809.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8810.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8811.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8812.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8813.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8817.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_8818.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_4687.webp',
+                'resources/maps/wp2_call1_observation_maps/dasid_4688.webp'
+            ],
+            wp3: [
+                'resources/maps/wp3_sensor_observation_maps/dasid_3117.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_4687.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_4688.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_5531.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_5846.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_5850.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_5867.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_5868.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_5871.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_5872.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_5873.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_6581.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7918.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7919.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7921.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7932.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7937.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7938.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7940.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7941.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7942.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7943.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_7944.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_8152.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_8153.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_8357.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_8612.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_8617.webp',
+                'resources/maps/wp3_sensor_observation_maps/dasid_8744.webp'
+            ],
+            etn: [
+                'resources/maps/etn_maps/2010_phd_reubens_detections.webp',
+                'resources/maps/etn_maps/2010_phd_reubens_sync_detections.webp',
+                'resources/maps/etn_maps/2011_Loire_detections.webp',
+                'resources/maps/etn_maps/2011_rivierprik_detections.webp',
+                'resources/maps/etn_maps/2011_Warnow_detections.webp',
+                'resources/maps/etn_maps/2012_leopoldkanaal_detections.webp',
+                'resources/maps/etn_maps/2013_albertkanaal_detections.webp',
+                'resources/maps/etn_maps/2014_demer_detections.webp',
+                'resources/maps/etn_maps/2014_Nene_detections.webp',
+                'resources/maps/etn_maps/2015_Albertkanaal_VPS_Ham_detections.webp',
+                'resources/maps/etn_maps/2015_dijle_detections.webp',
+                'resources/maps/etn_maps/2015_homarus_detections.webp',
+                'resources/maps/etn_maps/2015_phd_verhelst_cod_detections.webp',
+                'resources/maps/etn_maps/2015_phd_verhelst_eel_detections.webp',
+                'resources/maps/etn_maps/2019_Grotenete_detections.webp',
+                'resources/maps/etn_maps/ARAISOLA02_detections.webp',
+                'resources/maps/etn_maps/ARAISOLA03_detections.webp',
+                'resources/maps/etn_maps/Artevigo_detections.webp',
+                'resources/maps/etn_maps/BALANCE_detections.webp',
+                'resources/maps/etn_maps/BTN-IMEDEA_detections.webp',
+                'resources/maps/etn_maps/Carp_Markermeer_detections.webp',
+                'resources/maps/etn_maps/codnoise_detections.webp',
+                'resources/maps/etn_maps/COREMAR_detections.webp',
+                'resources/maps/etn_maps/CORYTRACK_detections.webp',
+                'resources/maps/etn_maps/DAbecasis_PhD_detections.webp',
+                'resources/maps/etn_maps/DAK_detections.webp',
+                'resources/maps/etn_maps/driederfzijlen_detections.webp',
+                'resources/maps/etn_maps/Duurswold_detections.webp',
+                'resources/maps/etn_maps/ESGL_detections.webp',
+                'resources/maps/etn_maps/Gamerwolde_detections.webp',
+                'resources/maps/etn_maps/hunze_eel_detections.webp',
+                'resources/maps/etn_maps/Limfjord_detections.webp',
+                'resources/maps/etn_maps/Noordzeekanaal_detections.webp',
+                'resources/maps/etn_maps/OP-Test_detections.webp',
+                'resources/maps/etn_maps/OTN-Hemnfjorden_detections.webp',
+                'resources/maps/etn_maps/OTN-Tosenfjorden_detections.webp',
+                'resources/maps/etn_maps/PhD_Barbara_Koeck_detections.webp',
+                'resources/maps/etn_maps/PhD_Goossens_detections.webp',
+                'resources/maps/etn_maps/Porbeagles_Europe_detections.webp',
+                'resources/maps/etn_maps/PTN-Silver-eel-Mondego_detections.webp',
+                'resources/maps/etn_maps/RAJIBAL-COFIB_detections.webp',
+                'resources/maps/etn_maps/RATJADA_detections.webp',
+                'resources/maps/etn_maps/Reelease_detections.webp',
+                'resources/maps/etn_maps/Rijke_Noordzee_detections.webp',
+                'resources/maps/etn_maps/SARTELTG_detections.webp',
+                'resources/maps/etn_maps/SARTELZINGARO_detections.webp',
+                'resources/maps/etn_maps/SEMP_detections.webp',
+                'resources/maps/etn_maps/SmartBay_animals_detections.webp',
+                'resources/maps/etn_maps/ZRM_animals_detections.webp'
+            ]
+        };
+
+        class Slideshow {
+            constructor(name, images) {
+                this.name = name;
+                this.images = images;
+                this.currentIndex = 0;
+                this.isPlaying = true;
+                this.intervalId = null;
+                this.imageElement = document.getElementById(name + '-image');
+                this.counterElement = document.getElementById(name + '-counter');
+                this.playPauseButton = document.getElementById(name + '-play-pause');
+
+                this.init();
+            }
+
+            init() {
+                this.showImage(0);
+                this.startAutoPlay();
+            }
+
+            showImage(index) {
+                if (this.images.length === 0) {
+                    return;
+                }
+
+                this.currentIndex = (index + this.images.length) % this.images.length;
+                this.imageElement.src = this.images[this.currentIndex];
+                this.updateCounter();
+            }
+
+            updateCounter() {
+                this.counterElement.textContent = (this.currentIndex + 1) + ' / ' + this.images.length;
+            }
+
+            nextSlide() {
+                this.showImage(this.currentIndex + 1);
+                this.resetAutoPlay();
+            }
+
+            previousSlide() {
+                this.showImage(this.currentIndex - 1);
+                this.resetAutoPlay();
+            }
+
+            startAutoPlay() {
+                if (this.isPlaying) {
+                    this.intervalId = setInterval(() => this.nextSlide(), 3000);
+                }
+            }
+
+            stopAutoPlay() {
+                if (this.intervalId) {
+                    clearInterval(this.intervalId);
+                    this.intervalId = null;
+                }
+            }
+
+            resetAutoPlay() {
+                this.stopAutoPlay();
+                if (this.isPlaying) {
+                    this.startAutoPlay();
+                }
+            }
+
+            togglePlayPause() {
+                this.isPlaying = !this.isPlaying;
+
+                if (this.isPlaying) {
+                    this.playPauseButton.textContent = 'Pause';
+                    this.startAutoPlay();
+                } else {
+                    this.playPauseButton.textContent = 'Play';
+                    this.stopAutoPlay();
+                }
+            }
+        }
+
+        const slideshows = {};
+        document.addEventListener('DOMContentLoaded', function() {
+            slideshows.wp2 = new Slideshow('wp2', slideshowData.wp2);
+            slideshows.wp3 = new Slideshow('wp3', slideshowData.wp3);
+            slideshows.etn = new Slideshow('etn', slideshowData.etn);
+        });
     </script>
 </head>
 
@@ -76,16 +277,108 @@
 
         <ul class="navbar-menu">
             <li><a href="index.html">Welcome</a></li>
-            <li><a href="maps.html">Spatial coverage</a></li>
+            <li><a href="bioflow_datasets.html">The Data</a></li>
+            <li><a href="maps.html">Spatial Coverage</a></li>
             <li><a href="taxonomic_diversity.html">Taxonomic Diversity</a></li>
             <li><a href="temporal.html">Temporal Overview</a></li>
-            <li><a href="bioflow_datasets.html">DTO-Bioflow datasets</a></li>
-            <li><a href="data_lake.html">Data Lake</a></li>
         </ul>
     </div>
 </nav>
-<main class="page-content">
-    <h2>Work package 2 observation data</h2>
+<main class="page-content" id="top">
+
+    <nav class="toc" aria-label="Table of contents">
+        <h4>On this page</h4>
+        <a href="#navigating-the-data-lake">Navigating the Data Lake</a>
+        <br>
+        <a href="#previews">Preview Maps</a>
+        <br>
+        <a href="#overview-datasets">Overview Datasets</a>
+
+    </nav>
+
+     <h2 id="navigating-the-data-lake">Navigating the Data Lake</h2>
+    <div>
+        EDITO uses a SpatioTemporal Asset Catalog (STAC).
+        <br>
+        The STAC endpoint is
+          <a target="_blank" rel="noopener noreferrer" href="https://catalog.dive.edito.eu">https://catalog.dive.edito.eu</a>
+        and can be viewed on
+        <a target="_blank" rel="noopener noreferrer" href="https://viewer.dive.edito.eu/map?c=0,0,2.35&catalog=https:%2F%2Fapi.dive.edito.eu%2Fdata%2Fcatalogs">EDITO datalab > integrate data</a>
+        or queried programmatically.
+    </div>
+
+    <h4 id="emodnet-biology-data">EMODNET-Biology Data (Cluster 1 and 2)</h4>
+    <div>
+        All EMODnet biology data is made available in this STAC collection:
+        <br>
+        <a target="_blank" rel="noopener noreferrer" href="https://api.dive.edito.eu/data/collections/emodnet-occurrence_data/">https://api.dive.edito.eu/data/collections/emodnet-occurrence_data/</a>
+        <br>
+        <br>
+        At the moment of this visualization it contains this parquet file:
+        <br>
+        <a target="_blank" rel="noopener noreferrer" href="https://s3.waw3-1.cloudferro.com/emodnet/emodnet_biology/12639/marine_biodiversity_observations_2026-02-26.parquet">https://s3.waw3-1.cloudferro.com/emodnet/emodnet_biology/12639/marine_biodiversity_observations_2026-02-26.parquet</a>
+        <br>
+        <br>
+        The file was filtered to select the matching datasets by their <i>dasid</i>.
+        A list of all datasets and previews is available below.
+        For the occurrence extraction each unique lat, lon, time & aphia was considered.
+
+    </div>
+
+    <h4 id="etn-data">ETN Data (Cluster 3)</h4>
+    Data is stored in this collection:
+    <br>
+    <a target="_blank" rel="noopener noreferrer" href=https://www.lifewatch.be/etn/parquet/animal_tracking_datasets/collection.json>https://www.lifewatch.be/etn/parquet/animal_tracking_datasets/collection.json</a>
+    <div>
+
+    </div>
+    <h2 id="previews">Preview Maps</h2>
+    <div>
+        A list of all datasets and previews is available below.
+        These slideshows provide quick visual previews for each cluster.
+    </div>
+
+    <h4 id="previews-cluster-1">Cluster 1: New Observation data from open call</h4>
+    <div class="slideshow-container wp2-slideshow">
+        <div class="slideshow-content">
+            <img class="slideshow-image" id="wp2-image" src="" alt="WP2 Observation Map">
+        </div>
+        <div class="slideshow-controls">
+            <button class="slideshow-button" onclick="slideshows.wp2.previousSlide()">Previous</button>
+            <button class="slideshow-button play-pause" id="wp2-play-pause" onclick="slideshows.wp2.togglePlayPause()">Pause</button>
+            <button class="slideshow-button" onclick="slideshows.wp2.nextSlide()">Next</button>
+            <span class="slideshow-counter" id="wp2-counter">1 / 1</span>
+        </div>
+    </div>
+
+    <h4 id="previews-cluster-2">Cluster 2: Sensor observation data</h4>
+    <div class="slideshow-container wp3-slideshow">
+        <div class="slideshow-content">
+            <img class="slideshow-image" id="wp3-image" src="" alt="WP3 Sensor Observation Map">
+        </div>
+        <div class="slideshow-controls">
+            <button class="slideshow-button" onclick="slideshows.wp3.previousSlide()">Previous</button>
+            <button class="slideshow-button play-pause" id="wp3-play-pause" onclick="slideshows.wp3.togglePlayPause()">Pause</button>
+            <button class="slideshow-button" onclick="slideshows.wp3.nextSlide()">Next</button>
+            <span class="slideshow-counter" id="wp3-counter">1 / 1</span>
+        </div>
+    </div>
+
+    <h4 id="previews-cluster-3">Cluster 3: European Tracking Network (ETN)</h4>
+    <div class="slideshow-container etn-slideshow">
+        <div class="slideshow-content">
+            <img class="slideshow-image" id="etn-image" src="" alt="ETN Data Map">
+        </div>
+        <div class="slideshow-controls">
+            <button class="slideshow-button" onclick="slideshows.etn.previousSlide()">Previous</button>
+            <button class="slideshow-button play-pause" id="etn-play-pause" onclick="slideshows.etn.togglePlayPause()">Pause</button>
+            <button class="slideshow-button" onclick="slideshows.etn.nextSlide()">Next</button>
+            <span class="slideshow-counter" id="etn-counter">1 / 1</span>
+        </div>
+    </div>
+
+    <h2 id="overview-datasets">Overview Datasets</h2>
+    <h4 id="overview-cluster-1">Cluster 1: New Observation data from open call</h4>
 
     <table class="dasid-table">
         <thead>
@@ -129,7 +422,7 @@
         </tbody>
     </table>
 
-    <h2>Cluster 2: Work package 3 sensor observation data</h2>
+    <h4 id="overview-cluster-2">Cluster 2: Sensor observation data</h4>
     <table class="dasid-table">
         <thead>
             <tr>
@@ -257,7 +550,7 @@
         </tbody>
     </table>
 
-    <h2>Cluster 3: ETN data (European Tracking Network)</h2>
+    <h4 id="overview-cluster-3">Cluster 3: European Tracking Network (ETN)</h4>
     <table class="dasid-table">
         <thead>
             <tr>

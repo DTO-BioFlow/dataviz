@@ -309,3 +309,95 @@ a:hover {
 #imageList a:hover {
     text-decoration: underline;
 }
+
+/* ===== Dataset Preview Slideshows ===== */
+.slideshow-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.slideshow-content {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 0.95 / 1;
+    overflow: hidden;
+    border-radius: 6px;
+    background-color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.slideshow-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.slideshow-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.slideshow-button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.slideshow-button:hover {
+    background-color: #0056b3;
+}
+
+.slideshow-button:active {
+    transform: scale(0.98);
+}
+
+.slideshow-button.play-pause {
+    background-color: #28a745;
+}
+
+.slideshow-button.play-pause:hover {
+    background-color: #218838;
+}
+
+.slideshow-counter {
+    font-weight: bold;
+    color: #333;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* ===== Table of contents ===== */
+.toc {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.toc h2 {
+    margin: 0 0 0.5rem 0;
+}
+
+.toc ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
